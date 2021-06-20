@@ -7,11 +7,14 @@ defmodule FiveHundred.Deck do
   alias FiveHundred.{Deck, Card}
 
   def new_shuffled() do
-    new_four_handed_deck() |> Enum.shuffle()
+    new_four_handed_deck()
+    |> Enum.shuffle()
   end
 
   def new_four_handed_deck() do
-    new_deck() |> Enum.filter(&four_handed_filter/1)
+    new_deck()
+    |> Enum.concat([Card.joker()])
+    |> Enum.filter(&four_handed_filter/1)
   end
 
   defp new_deck() do
@@ -20,14 +23,17 @@ defmodule FiveHundred.Deck do
     end
   end
 
-  defp four_handed_filter(%Card{suit: suit, rank: rank} = card) when rank <= 3, do: false
+  defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
+       when rank <= 3,
+       do: false
 
   defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
        when rank == 4 and suit == :spades,
        do: false
 
-  defp four_handed_filter(%Card{suit: suit, rank: rank} = card) when rank == 4 and suit == :clubs,
-    do: false
+  defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
+       when rank == 4 and suit == :clubs,
+       do: false
 
   defp four_handed_filter(%Card{}), do: true
 end

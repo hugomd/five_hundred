@@ -11,4 +11,5 @@ defmodule FiveHundred.Card do
 
   def suits(), do: [:hearts, :diamonds, :clubs, :spades]
   def ranks(), do: Enum.to_list(2..14)
+  def joker(), do: %Card{rank: 15, suit: :joker}
 end
