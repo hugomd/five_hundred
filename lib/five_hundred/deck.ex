@@ -7,20 +7,16 @@ defmodule FiveHundred.Deck do
   alias FiveHundred.{Deck, Card}
 
   def new_shuffled() do
-    new_four_handed_deck()
-    |> Enum.shuffle()
-  end
-
-  def new_four_handed_deck() do
     new_deck()
-    |> Enum.concat([Card.joker()])
     |> Enum.filter(&four_handed_filter/1)
+    |> Enum.shuffle()
   end
 
   defp new_deck() do
     for suit <- Card.suits(), rank <- Card.ranks() do
       %Card{rank: rank, suit: suit}
     end
+    |> Enum.concat([Card.joker()])
   end
 
   defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
