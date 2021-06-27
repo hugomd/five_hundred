@@ -6,7 +6,7 @@ defmodule FiveHundred.Game do
   - score
   - turn
   """
-  alias FiveHundred.{Bid, Card, Deck, Game, Player}
+  alias FiveHundred.{Bid, Game, Player}
 
   @derive Jason.Encoder
   defstruct [
@@ -16,10 +16,18 @@ defmodule FiveHundred.Game do
   ]
 
   @type state :: :bidding | :playing | :waiting_for_players
-  
+
   @type t :: %Game{
-    state: state,
-    bid: Bid.t(),
-    players: [Player.t()]
-  }
+          state: state,
+          bid: Bid.t(),
+          players: [Player.t()]
+        }
+
+  @spec highest_bid([Bid.t()]) :: Bid.t()
+  def highest_bid(bids),
+    do:
+      bids
+      |> Bid.sort_by_suit()
+      |> Bid.sort_by_trick()
+      |> hd
 end
