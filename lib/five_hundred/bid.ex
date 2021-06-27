@@ -26,9 +26,7 @@ defmodule FiveHundred.Bid do
   Multiplies tricks by 10 to offset addition of the suit.
   E.g. %Bid{suit: hearts, tricks: 6} = 3 + (6 * 10) = 63
   """
-  def to_int(bid) do
-    Card.suits()[bid.suit] + bid.tricks * 10
-  end
+  def to_int(bid), do: Card.suits()[bid.suit] + bid.tricks * 10
 
   @spec sort_by_trick([t()]) :: [t()]
   def sort_by_trick(list), do: Enum.sort(list, &trick_comparator/2)

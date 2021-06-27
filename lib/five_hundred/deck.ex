@@ -17,9 +17,7 @@ defmodule FiveHundred.Deck do
   end
 
   @spec new_deck() :: Deck.t()
-  @doc """
-  new_deck/0: creates a new 53 card deck, including the joker
-  """
+  # new_deck/0: creates a new 53 card deck, including the joker
   defp new_deck() do
     for suit <- Card.suits(), rank <- Card.ranks() do
       %Card{rank: rank, suit: suit}
@@ -28,20 +26,18 @@ defmodule FiveHundred.Deck do
   end
 
   @spec four_handed_filter(Card.t()) :: boolean
-  @doc """
-  four_handed_filter/1: given a card, returns a boolean indicating
-  whether it should be included for a four-handed deck.
-  Filters red fours down exclusive.
-  """
-  defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
+  # four_handed_filter/1: given a card, returns a boolean indicating
+  # whether it should be included for a four-handed deck.
+  # Filters red fours down exclusive.
+  defp four_handed_filter(%Card{suit: _, rank: rank})
        when rank <= 3,
        do: false
 
-  defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
+  defp four_handed_filter(%Card{suit: suit, rank: rank})
        when rank == 4 and suit == :spades,
        do: false
 
-  defp four_handed_filter(%Card{suit: suit, rank: rank} = card)
+  defp four_handed_filter(%Card{suit: suit, rank: rank})
        when rank == 4 and suit == :clubs,
        do: false
 
