@@ -1,7 +1,7 @@
 defmodule FiveHundred.DeckTest do
   use ExUnit.Case
 
-  alias FiveHundred.{Deck, Card}
+  alias FiveHundred.{Deck}
 
   test "excludes black fours and under" do
     deck =
