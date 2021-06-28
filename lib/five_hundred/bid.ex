@@ -10,6 +10,13 @@ defmodule FiveHundred.Bid do
           points: 40..1000
         }
 
+  @type special_bid :: %Bid{
+          name: String.t(),
+          points: 250 | 500 | 1000,
+          suit: :no_trumps,
+          tricks: 10
+        }
+
   @spec bids() :: [t()]
   @doc """
   bids/0 returns a list of bids according to the table below:
@@ -48,14 +55,7 @@ defmodule FiveHundred.Bid do
     end
   end
 
-  @spec special_bids() :: [
-          %Bid{
-            name: String.t(),
-            points: 250 | 500 | 1000,
-            suit: :no_trumps,
-            tricks: 10
-          }
-        ]
+  @spec special_bids() :: [special_bid()]
   defp special_bids(),
     do: [
       %Bid{
