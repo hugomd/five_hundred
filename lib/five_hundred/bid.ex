@@ -39,7 +39,6 @@ defmodule FiveHundred.Bid do
       Card.suits()
       |> Enum.reverse()
       |> Enum.with_index()
-      |> Enum.map(fn {suit, index} -> {suit, index + 1} end)
 
     base_points = [40, 60, 80, 100, 120] |> Enum.with_index()
 
@@ -50,7 +49,7 @@ defmodule FiveHundred.Bid do
         name: "#{tricks} #{Atom.to_string(suit)}",
         suit: suit,
         tricks: tricks,
-        points: points * suit_index
+        points: points * (suit_index + 1)
       }
     end
   end
