@@ -12,7 +12,7 @@ defmodule FiveHundred.Bid do
 
   @spec bids() :: [t()]
   @doc """
-  generate_bids/0 returns a list of bids according to the table below:
+  bids/0 returns a list of bids according to the table below:
   | Tricks       | Spades | Clubs | Diamonds | Hearts | No Trumps |
   |:------------:|:------:|:-----:|:--------:|:------:|:---------:|
   | 6 tricks     | 40     | 80    | 120      | 160    | 200       |
