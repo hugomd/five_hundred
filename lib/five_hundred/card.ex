@@ -11,12 +11,11 @@ defmodule FiveHundred.Card do
   @type suit :: :hearts | :diamonds | :clubs | :spades | :joker
   @type rank :: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15
 
-  @spec suits() :: [{suit, integer}]
-  def suits(),
-    do:
-      [:hearts, :diamonds, :clubs, :spades]
-      |> Enum.reverse()
-      |> Enum.with_index()
+  @spec suits() :: [suit]
+  def suits(), do: [:no_trumps, :hearts, :diamonds, :clubs, :spades]
+
+  @spec traditional_suits() :: [suit]
+  def traditional_suits(), do: [:hearts, :diamonds, :clubs, :spades]
 
   @spec ranks() :: [rank]
   def ranks(), do: Enum.to_list(2..14)

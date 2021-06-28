@@ -27,7 +27,6 @@ defmodule FiveHundred.Game do
   def highest_bid(bids),
     do:
       bids
-      |> Bid.sort_by_suit()
-      |> Bid.sort_by_trick()
+      |> Bid.sort_by_points()
       |> hd
 end

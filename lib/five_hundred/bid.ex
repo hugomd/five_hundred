@@ -1,42 +1,95 @@
 defmodule FiveHundred.Bid do
   @derive Jason.Encoder
-  defstruct [:suit, :tricks]
+  defstruct [:name, :suit, :tricks, :points]
   alias FiveHundred.{Bid, Card}
 
   @type t :: %Bid{
+          name: String.t(),
           suit: Card.suit(),
-          tricks: integer
+          tricks: integer,
+          points: 40..1000
         }
 
-  @spec compare(t(), t()) :: :lt | :gt | :eq
-  def compare(a, b) do
-    aVal = to_int(a)
-    bVal = to_int(b)
+  @spec bids() :: [t()]
+  @doc """
+  generate_bids/0 returns a list of bids according to the table below:
+  | Tricks       | Spades | Clubs | Diamonds | Hearts | No Trumps |
+  |:------------:|:------:|:-----:|:--------:|:------:|:---------:|
+  | 6 tricks     | 40     | 80    | 120      | 160    | 200       |
+  | 7 tricks     | 60     | 120   | 180      | 240    | 300       |
+  | 8 tricks     | 80     | 160   | 240      | 320    | 400       |
+  | 9 tricks     | 100    | 200   | 300      | 400    | 500       |
+  | 10 tricks    | 120    | 240   | 360      | 480    | 600       |
+  | Misere       | 250    |       |          |        |           |
+  | Open Misere  | 500    |       |          |        |           |
+  | Blind Misere | 1000   |       |          |        |           |
+  """
+  def bids(), do: List.flatten(standard_bids(), special_bids())
 
-    cond do
-      aVal < bVal -> :lt
-      aVal > bVal -> :gt
-      aVal == bVal -> :eq
+  @spec standard_bids() :: [t()]
+  defp standard_bids() do
+    suits =
+      Card.suits()
+      |> Enum.reverse()
+      |> Enum.with_index()
+      |> Enum.map(fn {suit, index} -> {suit, index + 1} end)
+
+    base_points = [40, 60, 80, 100, 120] |> Enum.with_index()
+
+    for {points, point_index} <- base_points, {suit, suit_index} <- suits do
+      tricks = point_index + 6
+
+      %Bid{
+        name: "#{tricks} #{Atom.to_string(suit)}",
+        suit: suit,
+        tricks: tricks,
+        points: points * suit_index
+      }
     end
   end
 
-  @spec to_int(t()) :: integer
-  @doc """
-  Converts a bid to an integer for comparison.
-  Multiplies tricks by 10 to offset addition of the suit.
-  E.g. %Bid{suit: hearts, tricks: 6} = 3 + (6 * 10) = 63
-  """
-  def to_int(bid), do: Card.suits()[bid.suit] + bid.tricks * 10
+  @spec special_bids() :: [
+          %Bid{
+            name: String.t(),
+            points: 250 | 500 | 1000,
+            suit: :no_trumps,
+            tricks: 10
+          }
+        ]
+  defp special_bids(),
+    do: [
+      %Bid{
+        name: "Misère",
+        suit: :no_trumps,
+        tricks: 10,
+        points: 250
+      },
+      %Bid{
+        name: "Open Misère",
+        suit: :no_trumps,
+        tricks: 10,
+        points: 500
+      },
+      %Bid{
+        name: "Blind Misère",
+        suit: :no_trumps,
+        tricks: 10,
+        points: 1000
+      }
+    ]
 
-  @spec sort_by_trick([t()]) :: [t()]
-  def sort_by_trick(list), do: Enum.sort(list, &trick_comparator/2)
+  @spec compare(t(), t()) :: :lt | :gt | :eq
+  def compare(a, b) do
+    cond do
+      a.points < b.points -> :lt
+      a.points > b.points -> :gt
+      a.points == b.points -> :eq
+    end
+  end
 
-  @spec trick_comparator(t(), t()) :: boolean
-  defp trick_comparator(ax, bx), do: ax.tricks >= bx.tricks
+  @spec sort_by_points([t()]) :: [t()]
+  def sort_by_points(list), do: Enum.sort(list, &point_comparator/2)
 
-  @spec sort_by_suit([t()]) :: [t()]
-  def sort_by_suit(list), do: Enum.sort(list, &suit_comparator/2)
-
-  @spec suit_comparator(t(), t()) :: boolean
-  defp suit_comparator(ax, bx), do: Card.suits()[ax.suit] >= Card.suits()[bx.suit]
+  @spec point_comparator(t(), t()) :: boolean
+  defp point_comparator(ax, bx), do: ax.points >= bx.points
 end

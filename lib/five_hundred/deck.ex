@@ -19,7 +19,7 @@ defmodule FiveHundred.Deck do
   @spec new_deck() :: Deck.t()
   # new_deck/0: creates a new 53 card deck, including the joker
   defp new_deck() do
-    for suit <- Card.suits(), rank <- Card.ranks() do
+    for suit <- Card.traditional_suits(), rank <- Card.ranks() do
       %Card{rank: rank, suit: suit}
     end
     |> Enum.concat([Card.joker()])
