@@ -1,7 +1,16 @@
 defmodule FiveHundred.GameTest do
   use ExUnit.Case
 
-  alias FiveHundred.{Bid, Game}
+  alias FiveHundred.{Bid, Game, Player}
+
+  test "creates a new game" do
+    player = %Player{name: "Han Solo", hand: []}
+    game = Game.new_game(player)
+
+    assert game.players == [player]
+    assert game.code != nil
+    assert game.state == :waiting_for_players
+  end
 
   test "determine highest bid" do
     bids = [

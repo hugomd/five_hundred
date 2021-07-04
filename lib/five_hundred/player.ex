@@ -8,7 +8,7 @@ defmodule FiveHundred.Player do
   @derive Jason.Encoder
   defstruct [
     :name,
-    :hand
+    hand: []
   ]
 
   @type t :: %Player{
