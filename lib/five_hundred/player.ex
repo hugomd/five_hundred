@@ -12,7 +12,7 @@ defmodule FiveHundred.Player do
   ]
 
   @type t :: %Player{
-          name: String.t(),
-          hand: [Card.t()]
+          name: nil | String.t(),
+          hand: nil | [Card.t()]
         }
 end

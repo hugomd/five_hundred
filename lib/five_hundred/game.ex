@@ -10,7 +10,8 @@ defmodule FiveHundred.Game do
 
   @derive Jason.Encoder
   defstruct [
-    :bid,
+    :bids,
+    :winning_bid,
     :players,
     :player_turn,
     :code,
@@ -21,11 +22,12 @@ defmodule FiveHundred.Game do
   @type state :: :bidding | :playing | :waiting_for_players | :finished
 
   @type t :: %Game{
-          state: state,
-          bid: Bid.t(),
+          bids: nil | [Bid.t()],
+          code: nil | code(),
           players: [Player.t()],
           player_turn: nil | integer(),
-          code: code()
+          state: state,
+          winning_bid: nil | Bid.t()
         }
 
   @spec new_game(Player.t()) :: t()
