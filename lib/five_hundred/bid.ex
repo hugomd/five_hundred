@@ -22,11 +22,11 @@ defmodule FiveHundred.Bid do
   bids/0 returns a list of bids according to the table below:
   | Tricks       | Spades | Clubs | Diamonds | Hearts | No Trumps |
   |:------------:|:------:|:-----:|:--------:|:------:|:---------:|
-  | 6 tricks     | 40     | 80    | 120      | 160    | 200       |
-  | 7 tricks     | 60     | 120   | 180      | 240    | 300       |
-  | 8 tricks     | 80     | 160   | 240      | 320    | 400       |
-  | 9 tricks     | 100    | 200   | 300      | 400    | 500       |
-  | 10 tricks    | 120    | 240   | 360      | 480    | 600       |
+  | 6 tricks     | 40     | 60    | 80       | 100    | 120       |
+  | 7 tricks     | 140    | 160   | 180      | 200    | 220       |
+  | 8 tricks     | 240    | 260   | 280      | 300    | 320       |
+  | 9 tricks     | 340    | 360   | 380      | 400    | 420       |
+  | 10 tricks    | 440    | 460   | 480      | 500    | 520       |
   | Misere       | 250    |       |          |        |           |
   | Open Misere  | 500    |       |          |        |           |
   | Blind Misere | 1000   |       |          |        |           |
@@ -38,18 +38,15 @@ defmodule FiveHundred.Bid do
     suits =
       Card.suits()
       |> Enum.reverse()
-      |> Enum.with_index()
 
-    base_points = [40, 60, 80, 100, 120] |> Enum.with_index()
+    points_and_suits = List.zip([[40, 60, 80, 100, 120], suits])
 
-    for {points, point_index} <- base_points, {suit, suit_index} <- suits do
-      tricks = point_index + 6
-
+    for {points, suit} <- points_and_suits, tricks <- 6..10 do
       %Bid{
         name: "#{tricks} #{Atom.to_string(suit)}",
         suit: suit,
         tricks: tricks,
-        points: points * (suit_index + 1)
+        points: points + ((tricks - 6) * 100)
       }
     end
   end
