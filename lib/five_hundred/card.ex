@@ -20,6 +20,16 @@ defmodule FiveHundred.Card do
   @spec ranks() :: [rank]
   def ranks(), do: Enum.to_list(2..14)
 
-  @spec joker() :: %Card{rank: rank, suit: suit}
+  @spec joker() :: t()
   def joker(), do: %Card{rank: 15, suit: :joker}
+
+  @spec to_string(suit()) :: String.t()
+  def to_string(suit),
+    do:
+      suit
+      |> Atom.to_string()
+      |> String.replace(~r/_/, " ")
+      |> String.split(" ")
+      |> Enum.map(&String.capitalize/1)
+      |> Enum.join(" ")
 end

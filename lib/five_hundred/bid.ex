@@ -43,10 +43,10 @@ defmodule FiveHundred.Bid do
 
     for {points, suit} <- points_and_suits, tricks <- 6..10 do
       %Bid{
-        name: "#{tricks} #{Atom.to_string(suit)}",
+        name: "#{tricks} #{Card.to_string(suit)}",
         suit: suit,
         tricks: tricks,
-        points: points + ((tricks - 6) * 100)
+        points: points + (tricks - 6) * 100
       }
     end
   end
