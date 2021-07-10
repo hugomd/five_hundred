@@ -15,6 +15,7 @@ defmodule FiveHundred.Game do
     :players,
     :player_turn,
     :code,
+    :max_players,
     state: :waiting_for_players
   ]
 
@@ -27,15 +28,34 @@ defmodule FiveHundred.Game do
           players: [Player.t()],
           player_turn: nil | integer(),
           state: state,
-          winning_bid: nil | Bid.t()
+          winning_bid: nil | Bid.t(),
+          max_players: integer()
         }
 
   @spec new_game(Player.t()) :: t()
-  def new_game(%Player{} = player),
+  def new_game(%Player{} = player, max_players \\ 4),
     do: %Game{
       code: code(),
-      players: [player]
+      players: [player],
+      max_players: max_players
     }
+
+  @spec join_game(t(), Player.t()) :: t()
+  def join_game(%Game{players: players} = game, %Player{})
+      when length(players) == game.max_players,
+      do: {:error, :max_players}
+
+  def join_game(%Game{players: players} = game, %Player{} = player) do
+    {:ok, %Game{game | players: [player | players]}}
+    |> ready_for_bidding?
+  end
+
+  @spec ready_for_bidding?(t()) :: t()
+  def ready_for_bidding?({:ok, %Game{players: players, max_players: max_players} = game})
+      when length(players) == max_players,
+      do: {:ok, %Game{game | state: :bidding}}
+
+  def ready_for_bidding?({:ok, %Game{}} = game), do: game
 
   @spec highest_bid([Bid.t()]) :: Bid.t()
   def highest_bid(bids),
