@@ -8,7 +8,7 @@ defmodule FiveHundred.Card do
   alias FiveHundred.Card
 
   @type t :: %Card{rank: rank, suit: suit}
-  @type suit :: :hearts | :diamonds | :clubs | :spades | :joker
+  @type suit :: :no_trumps | :hearts | :diamonds | :clubs | :spades | :joker
   @type rank :: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15
 
   @spec suits() :: [suit]
