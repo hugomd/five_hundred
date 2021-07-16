@@ -40,7 +40,7 @@ defmodule FiveHundred.Game do
       max_players: max_players
     }
 
-  @spec join_game(t(), Player.t()) :: t()
+  @spec join_game(t(), Player.t()) :: {:ok, t()} | {:error, :max_players}
   def join_game(%Game{players: players} = game, %Player{})
       when length(players) == game.max_players,
       do: {:error, :max_players}
@@ -50,12 +50,25 @@ defmodule FiveHundred.Game do
     |> ready_for_bidding?
   end
 
-  @spec ready_for_bidding?(t()) :: t()
+  # Bids go around the table, starting left of the dealer
+  @spec bid(t(), Player.t(), Bid.t()) :: nil | {:error, :max_bids}
+  def bid(%Game{bids: bids, max_players: max_players}, %Player{}, %Bid{})
+      when length(bids) == max_players,
+      do: {:error, :max_bids}
+
+  def bid(%Game{bids: []} = game, %Player{} = player, %Bid{} = bid) do
+    # Bid must be in list of standard bids
+    # If there is a previous winner, ensure they bid first, then around the table from them.
+    # E.g. Table: 1, 2, 3, 4. Last winner was 3, then the bids should be 3, 4, 1, 2
+    # If there is no previous winner, assume the previous winner to the first player who joined
+  end
+
+  @spec ready_for_bidding?({:ok, t()}) :: {:ok, t()}
   def ready_for_bidding?({:ok, %Game{players: players, max_players: max_players} = game})
       when length(players) == max_players,
       do: {:ok, %Game{game | state: :bidding}}
 
-  def ready_for_bidding?({:ok, %Game{}} = game), do: game
+  def ready_for_bidding?({:ok, %Game{} = game}), do: {:ok, game}
 
   @spec highest_bid([Bid.t()]) :: Bid.t()
   def highest_bid(bids),

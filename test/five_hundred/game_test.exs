@@ -32,6 +32,40 @@ defmodule FiveHundred.GameTest do
     assert result == {:error, :max_players}
   end
 
+  test "cannot bid if at max bids" do
+    # TODO: Construct a game
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    game = %Game{
+      Game.new_game(player1, 1)
+      | bids: [
+          %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+        ]
+    }
+
+    result =
+      Game.bid(
+        game,
+        player2,
+        %Bid{name: "7 spades", points: 140, suit: :spades, tricks: 7}
+      )
+
+    assert result == {:error, :max_bids}
+  end
+
+  test "cannot bid multiple times" do
+  end
+
+  test "cannot bid out of order" do
+  end
+
+  test "bid must be a standard bid" do
+  end
+
+  test "previous winner must bid" do
+  end
+
   test "determine highest bid" do
     bids = [
       %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6},
