@@ -6,16 +6,16 @@ defmodule FiveHundred.Game do
   - score
   - turn
   """
-  alias FiveHundred.{Bid, Game, Player}
+  alias FiveHundred.{Bid, Game, Player, PlayerBid}
 
   @derive Jason.Encoder
   defstruct [
-    :bids,
     :winning_bid,
     :players,
     :player_turn,
     :code,
     :max_players,
+    :last_round_winner,
     state: :waiting_for_players
   ]
 
@@ -23,13 +23,13 @@ defmodule FiveHundred.Game do
   @type state :: :bidding | :playing | :waiting_for_players | :finished
 
   @type t :: %Game{
-          bids: nil | [Bid.t()],
           code: nil | code(),
           players: [Player.t()],
           player_turn: nil | integer(),
           state: state,
-          winning_bid: nil | Bid.t(),
-          max_players: integer()
+          winning_bid: nil | PlayerBid.t(),
+          max_players: integer(),
+          last_round_winner: nil | Player.t()
         }
 
   @spec new_game(Player.t()) :: t()
@@ -37,7 +37,9 @@ defmodule FiveHundred.Game do
     do: %Game{
       code: code(),
       players: [player],
-      max_players: max_players
+      max_players: max_players,
+      last_round_winner: player,
+      winning_bid: nil
     }
 
   @spec join_game(t(), Player.t()) :: {:ok, t()} | {:error, :max_players}
@@ -51,16 +53,22 @@ defmodule FiveHundred.Game do
   end
 
   # Bids go around the table, starting left of the dealer
-  @spec bid(t(), Player.t(), Bid.t()) :: nil | {:error, :max_bids}
-  def bid(%Game{bids: bids, max_players: max_players}, %Player{}, %Bid{})
-      when length(bids) == max_players,
-      do: {:error, :max_bids}
+  @spec bid(t(), PlayerBid.t()) :: {:ok, %Game{}} | {:error, :last_round_winner_must_bid_first | :not_bidding | :bid_not_high_enough}
+  def bid(%Game{state: state}) when state != :bidding, do: {:error, :not_bidding}
 
-  def bid(%Game{bids: []} = game, %Player{} = player, %Bid{} = bid) do
-    # Bid must be in list of standard bids
-    # If there is a previous winner, ensure they bid first, then around the table from them.
-    # E.g. Table: 1, 2, 3, 4. Last winner was 3, then the bids should be 3, 4, 1, 2
-    # If there is no previous winner, assume the previous winner to the first player who joined
+  def bid(%Game{winning_bid: nil, last_round_winner: last_round_winner}, %PlayerBid{player: player})
+    when last_round_winner != player,
+    do: {:error, :last_round_winner_must_bid_first}
+  def bid(%Game{winning_bid: nil} = game, %PlayerBid{} = playerBid),
+    do: {:ok, %Game{game | winning_bid: playerBid}}
+
+  # TODO: bid in order, use a tuple of player and bid
+
+  def bid(%Game{winning_bid: %PlayerBid{bid: winning_bid}} = game, %PlayerBid{bid: new_bid} = playerBid) do
+    case Bid.compare(new_bid, winning_bid) do
+      :gt -> {:ok, %Game{game | winning_bid: playerBid}}
+      _ -> {:error, :bid_not_high_enough}
+    end
   end
 
   @spec ready_for_bidding?({:ok, t()}) :: {:ok, t()}
@@ -69,13 +77,6 @@ defmodule FiveHundred.Game do
       do: {:ok, %Game{game | state: :bidding}}
 
   def ready_for_bidding?({:ok, %Game{} = game}), do: {:ok, game}
-
-  @spec highest_bid([Bid.t()]) :: Bid.t()
-  def highest_bid(bids),
-    do:
-      bids
-      |> Bid.sort_by_points()
-      |> hd
 
   def code(length \\ 5),
     do:

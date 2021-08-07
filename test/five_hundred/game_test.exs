@@ -1,7 +1,7 @@
 defmodule FiveHundred.GameTest do
   use ExUnit.Case
 
-  alias FiveHundred.{Bid, Game, Player}
+  alias FiveHundred.{Bid, Game, Player, PlayerBid}
 
   test "creates a new game" do
     player = %Player{name: "Han Solo", hand: []}
@@ -32,29 +32,8 @@ defmodule FiveHundred.GameTest do
     assert result == {:error, :max_players}
   end
 
-  test "cannot bid if at max bids" do
-    # TODO: Construct a game
-    player1 = %Player{name: "Han Solo", hand: []}
-    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
-
-    game = %Game{
-      Game.new_game(player1, 1)
-      | bids: [
-          %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
-        ]
-    }
-
-    result =
-      Game.bid(
-        game,
-        player2,
-        %Bid{name: "7 spades", points: 140, suit: :spades, tricks: 7}
-      )
-
-    assert result == {:error, :max_bids}
-  end
-
   test "cannot bid multiple times" do
+    
   end
 
   test "cannot bid out of order" do
@@ -64,21 +43,32 @@ defmodule FiveHundred.GameTest do
   end
 
   test "previous winner must bid" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} = Game.new_game(player2, 2)
+           |> Game.join_game(player1)
+    bid = %PlayerBid{
+      player: player1, 
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    result = Game.bid(game, bid)
+    assert result == {:error, :last_round_winner_must_bid_first}
   end
 
-  test "determine highest bid" do
-    bids = [
-      %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6},
-      %Bid{name: "6 hearts", points: 160, suit: :hearts, tricks: 6},
-      %Bid{name: "8 spades", points: 80, suit: :spades, tricks: 8},
-      %Bid{name: "7 diamonds", points: 180, suit: :diamonds, tricks: 7}
-    ]
+  test "previous winner bids successfully" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
 
-    assert Game.highest_bid(bids) == %Bid{
-             name: "7 diamonds",
-             points: 180,
-             suit: :diamonds,
-             tricks: 7
-           }
+    {:ok, game} = Game.new_game(player1, 2)
+           |> Game.join_game(player2)
+    bid = %PlayerBid{
+      player: player1, 
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, %{winning_bid: winning_bid}} = Game.bid(game, bid)
+    assert winning_bid == bid
   end
 end
