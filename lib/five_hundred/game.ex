@@ -56,69 +56,76 @@ defmodule FiveHundred.Game do
     |> ready_for_bidding?
   end
 
-  @spec bid(t(), PlayerBid.t()) :: {:ok, %Game{}} | {:error, :last_round_winner_must_bid_first | :not_bidding | :bid_not_high_enough | :cannot_bid}
-  def bid(%Game{winning_bid: nil, last_round_winner: last_round_winner}, %PlayerBid{player_index: player_index})
-    when last_round_winner != player_index,
-    do: {:error, :last_round_winner_must_bid_first}
+  @spec bid(t(), PlayerBid.t()) ::
+          {:ok, %Game{}}
+          | {:error,
+             :last_round_winner_must_bid_first | :not_bidding | :bid_not_high_enough | :cannot_bid}
+  def bid(%Game{winning_bid: nil, last_round_winner: last_round_winner}, %PlayerBid{
+        player_index: player_index
+      })
+      when last_round_winner != player_index,
+      do: {:error, :last_round_winner_must_bid_first}
 
   def bid(%Game{} = game, %PlayerBid{player_index: player_index} = playerBid) do
-    {:ok, game}
-    |> ensure_bidding
-    |> ensure_turn(player_index)
-    |> ensure_can_bid(player_index)
-    |> ensure_bid_is_higher(playerBid)
-    |> set_winning_bid(playerBid)
-    |> bid_advance
-    |> advance_turn
+    with {:ok, game} <- ensure_bidding(game),
+         {:ok, game} <- ensure_turn(game, player_index),
+         {:ok, game} <- ensure_can_bid(game, player_index),
+         {:ok, game} <- ensure_bid_is_higher(game, playerBid),
+         {:ok, game} <- set_winning_bid(game, playerBid),
+         {:ok, game} <- bid_advance(game),
+         {:ok, game} <- advance_turn(game),
+         do: {:ok, game}
   end
 
   @spec pass(t(), integer()) :: {:ok, t()} | {:error, :not_your_turn | :not_bidding}
   def pass(%Game{} = game, player_index) do
-    {:ok, game}
-    |> ensure_bidding
-    |> ensure_turn(player_index)
-    |> exclude_from_bidding(player_index)
-    |> bid_advance
-    |> advance_turn
+    with {:ok, game} <- ensure_bidding(game),
+         {:ok, game} <- ensure_turn(game, player_index),
+         {:ok, game} <- ensure_can_bid(game, player_index),
+         {:ok, game} <- exclude_from_bidding(game, player_index),
+         {:ok, game} <- bid_advance(game),
+         {:ok, game} <- advance_turn(game),
+         do: {:ok, game}
   end
 
-  @spec bid_advance({:ok | :error, t() | String.t()}) :: {:ok, t()} | {:error, :not_bidding}
-  def bid_advance({:error, message}), do: {:error, message}
-  def bid_advance({:ok, %Game{bid_exclusion: bid_exclusion, players: players} = game})
-    when length(bid_exclusion) == (length(players) - 1),
-    do: {:ok, %Game{game | state: :playing}}
-  def bid_advance({:ok, %Game{}} = result), do: result
+  @spec bid_advance(t()) :: {:ok, t()} | {:error, :not_bidding}
+  def bid_advance(%Game{bid_exclusion: bid_exclusion, players: players} = game)
+      when length(bid_exclusion) == length(players) - 1,
+      do: {:ok, %Game{game | state: :playing}}
 
-  @spec advance_turn({:ok, t()}) :: {:ok, t()}
-  def advance_turn({:error, _message} = result), do: result
-  def advance_turn({:ok, %Game{players: players, turn: current_turn} = game}),
-   do: {:ok, %Game{game | turn: rem(current_turn + 1, length(players))}}
+  def bid_advance(%Game{} = game), do: {:ok, game}
 
-  @spec ensure_bidding({:ok | :error, t()}) :: {:ok, t()} | {:error, :not_bidding}
-  def ensure_bidding({:error, _message} = result), do: result
-  def ensure_bidding({:ok, %Game{state: state}}) when state != :bidding,
+  @spec advance_turn(t()) :: {:ok, t()}
+  def advance_turn(%Game{players: players, turn: current_turn} = game),
+    do: {:ok, %Game{game | turn: rem(current_turn + 1, length(players))}}
+
+  @spec ensure_bidding(t()) :: {:ok, t()} | {:error, :not_bidding}
+  def ensure_bidding(%Game{state: state}) when state != :bidding,
     do: {:error, :not_bidding}
-  def ensure_bidding(result), do: result
 
-  @spec ensure_turn({:ok | :error, t()}, integer()) :: {:ok, t()} | {:error, :not_your_turn}
-  def ensure_turn({:error, _message} = result), do: result
-  def ensure_turn({:ok, %Game{turn: turn}}, player_index) when turn != player_index,
+  def ensure_bidding(%Game{} = game), do: {:ok, game}
+
+  @spec ensure_turn(t(), integer()) :: {:ok, t()} | {:error, :not_your_turn}
+  def ensure_turn(%Game{turn: turn}, player_index) when turn != player_index,
     do: {:error, :not_your_turn}
-  def ensure_turn({:ok, %Game{} = game}, _player_index), do: {:ok, game}
 
-  @spec ensure_bid_is_higher({:ok | :error, t()}) :: {:ok, t()} | {:error, :bid_not_high_enough}
-  def ensure_bid_is_higher({:error, _message} = result), do: result
-  def ensure_bid_is_higher({:ok, %Game{winning_bid: nil}} = result, %PlayerBid{}), do: result
-  def ensure_bid_is_higher({:ok, %Game{winning_bid: %PlayerBid{bid: winning_bid}} = game}, %PlayerBid{bid: new_bid}) do
+  def ensure_turn(%Game{} = game, _player_index), do: {:ok, game}
+
+  @spec ensure_bid_is_higher(t(), PlayerBid.t()) :: {:ok, t()} | {:error, :bid_not_high_enough}
+  def ensure_bid_is_higher(%Game{winning_bid: nil} = game, %PlayerBid{}), do: {:ok, game}
+
+  def ensure_bid_is_higher(
+        %Game{winning_bid: %PlayerBid{bid: winning_bid}} = game,
+        %PlayerBid{bid: new_bid} = playerBid
+      ) do
     case Bid.compare(new_bid, winning_bid) do
-      :gt -> {:ok, %Game{game | winning_bid: new_bid}}
+      :gt -> set_winning_bid(game, playerBid)
       _ -> {:error, :bid_not_high_enough}
     end
   end
 
-  @spec ensure_can_bid({:ok | :error, t()}) :: {:ok, t()} | {:error, Atom.t()}
-  def ensure_can_bid({:error, _message} = result), do: result
-  def ensure_can_bid({:ok, %Game{bid_exclusion: bid_exclusion} = game}, player_index) do
+  @spec ensure_can_bid(t(), integer()) :: {:ok, t()} | {:error, Atom.t()}
+  def ensure_can_bid(%Game{bid_exclusion: bid_exclusion} = game, player_index) do
     if Enum.member?(bid_exclusion, player_index) do
       {:error, :cannot_bid}
     else
@@ -126,20 +133,19 @@ defmodule FiveHundred.Game do
     end
   end
 
-  @spec set_winning_bid({:ok | :error, t()}) :: {:ok, t()} | {:error, Atom.t()}
-  def set_winning_bid({:error, _message} = result), do: result
-  def set_winning_bid({:ok, %Game{} = game}, %PlayerBid{} = playerBid),
-    do: {:ok, game |> Map.put(:winning_bid, playerBid)}
+  @spec set_winning_bid(t(), PlayerBid.t()) :: {:ok, t()} | {:error, Atom.t()}
+  def set_winning_bid(%Game{} = game, %PlayerBid{} = playerBid),
+    do: {:ok, %Game{game | winning_bid: playerBid}}
 
-  @spec exclude_from_bidding({:ok | :error, t()}) :: {:ok, t()} | {:error, Atom.t()}
-  def exclude_from_bidding({:error, _message} = result), do: result
-  def exclude_from_bidding({:ok, %Game{bid_exclusion: bid_exclusion} = game}, player_index),
-    do: {:ok, game |> Map.put(:bid_exclusion, [player_index | bid_exclusion])}
+  @spec exclude_from_bidding(t(), integer()) :: {:ok, t()} | {:error, Atom.t()}
+  def exclude_from_bidding(%Game{bid_exclusion: bid_exclusion} = game, player_index),
+    do: {:ok, %Game{game | bid_exclusion: [player_index | bid_exclusion]}}
 
   @spec ready_for_bidding?({:ok, t()}) :: {:ok, t()}
   def ready_for_bidding?({:ok, %Game{players: players, max_players: max_players} = game})
       when length(players) == max_players,
       do: {:ok, %Game{game | state: :bidding}}
+
   def ready_for_bidding?({:ok, %Game{} = game}), do: {:ok, game}
 
   @spec code(integer) :: String.t()
@@ -149,4 +155,4 @@ defmodule FiveHundred.Game do
       |> Base.url_encode64()
       |> binary_part(0, length)
       |> String.upcase()
-  end
+end
