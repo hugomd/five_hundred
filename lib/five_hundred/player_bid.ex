@@ -1,10 +1,10 @@
 defmodule FiveHundred.PlayerBid do
   @derive Jason.Encoder
-  defstruct [:player, :bid]
+  defstruct [:player_index, :bid]
   alias FiveHundred.{PlayerBid, Bid, Player}
 
   @type t :: %PlayerBid{
-    player: Player.t(),
-    bid: Bid.t()
-  }
+          player_index: integer(),
+          bid: Bid.t()
+        }
 end
