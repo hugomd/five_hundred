@@ -32,13 +32,49 @@ defmodule FiveHundred.GameTest do
     assert result == {:error, :max_players}
   end
 
-  test "cannot bid multiple times" do
-  end
-
   test "cannot bid out of order" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+    player3 = %Player{name: "Qui-Gon Jinn", hand: []}
+
+    {:ok, game} =
+      with game <- Game.new_game(player1, 3),
+      {:ok, game} <- Game.join_game(game, player2),
+      {:ok, game} <- Game.join_game(game, player3),
+      do: {:ok, game}
+
+    bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, game} = Game.bid(game, bid)
+
+    second_bid = %PlayerBid{
+      player_index: 2,
+      bid: %Bid{name: "7 spades", points: 60, suit: :spades, tricks: 7}
+    }
+
+    result = Game.bid(game, second_bid)
+    assert result == {:error, :not_your_turn}
   end
 
-  test "bid must be a standard bid" do
+  test "cannot bid multiple times" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player2, 2)
+      |> Game.join_game(player1)
+
+    bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, game} = Game.bid(game, bid)
+    result = Game.bid(game, bid)
+    assert result == {:error, :not_your_turn}
   end
 
   test "previous winner must bid" do

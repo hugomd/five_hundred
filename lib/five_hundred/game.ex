@@ -60,14 +60,10 @@ defmodule FiveHundred.Game do
           {:ok, %Game{}}
           | {:error,
              :last_round_winner_must_bid_first | :not_bidding | :bid_not_high_enough | :cannot_bid}
-  def bid(%Game{winning_bid: nil, last_round_winner: last_round_winner}, %PlayerBid{
-        player_index: player_index
-      })
-      when last_round_winner != player_index,
-      do: {:error, :last_round_winner_must_bid_first}
 
   def bid(%Game{} = game, %PlayerBid{player_index: player_index} = playerBid) do
     with {:ok, game} <- ensure_bidding(game),
+         {:ok, game} <- ensure_last_winner_has_bid_first(game, playerBid),
          {:ok, game} <- ensure_turn(game, player_index),
          {:ok, game} <- ensure_can_bid(game, player_index),
          {:ok, game} <- ensure_bid_is_higher(game, playerBid),
@@ -76,6 +72,14 @@ defmodule FiveHundred.Game do
          {:ok, game} <- advance_turn(game),
          do: {:ok, game}
   end
+
+  @spec ensure_last_winner_has_bid_first(t(), %PlayerBid{}) :: {:ok, t()} | {:error, :last_round_winner_bid_first}
+  def ensure_last_winner_has_bid_first(%Game{winning_bid: nil, last_round_winner: last_round_winner}, %PlayerBid{
+        player_index: player_index
+      })
+      when last_round_winner != player_index,
+      do: {:error, :last_round_winner_must_bid_first}
+  def ensure_last_winner_has_bid_first(%Game{} = game, %PlayerBid{}), do: {:ok, game}
 
   @spec pass(t(), integer()) :: {:ok, t()} | {:error, :not_your_turn | :not_bidding}
   def pass(%Game{} = game, player_index) do
