@@ -6,6 +6,7 @@ defmodule FiveHundred.Player do
   alias FiveHundred.{Card, Player}
 
   @derive Jason.Encoder
+  # TODO: Should we store the player index here?
   defstruct [
     :name,
     hand: []

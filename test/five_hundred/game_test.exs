@@ -1,7 +1,7 @@
 defmodule FiveHundred.GameTest do
   use ExUnit.Case
 
-  alias FiveHundred.{Bid, Game, Player}
+  alias FiveHundred.{Bid, Game, Player, PlayerBid}
 
   test "creates a new game" do
     player = %Player{name: "Han Solo", hand: []}
@@ -32,19 +32,127 @@ defmodule FiveHundred.GameTest do
     assert result == {:error, :max_players}
   end
 
-  test "determine highest bid" do
-    bids = [
-      %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6},
-      %Bid{name: "6 hearts", points: 160, suit: :hearts, tricks: 6},
-      %Bid{name: "8 spades", points: 80, suit: :spades, tricks: 8},
-      %Bid{name: "7 diamonds", points: 180, suit: :diamonds, tricks: 7}
-    ]
+  test "cannot bid out of order" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+    player3 = %Player{name: "Qui-Gon Jinn", hand: []}
 
-    assert Game.highest_bid(bids) == %Bid{
-             name: "7 diamonds",
-             points: 180,
-             suit: :diamonds,
-             tricks: 7
-           }
+    {:ok, game} =
+      with game <- Game.new_game(player1, 3),
+      {:ok, game} <- Game.join_game(game, player2),
+      {:ok, game} <- Game.join_game(game, player3),
+      do: {:ok, game}
+
+    bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, game} = Game.bid(game, bid)
+
+    second_bid = %PlayerBid{
+      player_index: 2,
+      bid: %Bid{name: "7 spades", points: 60, suit: :spades, tricks: 7}
+    }
+
+    result = Game.bid(game, second_bid)
+    assert result == {:error, :not_your_turn}
+  end
+
+  test "cannot bid multiple times" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player2, 2)
+      |> Game.join_game(player1)
+
+    bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, game} = Game.bid(game, bid)
+    result = Game.bid(game, bid)
+    assert result == {:error, :not_your_turn}
+  end
+
+  test "previous winner must bid" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player2, 2)
+      |> Game.join_game(player1)
+
+    bid = %PlayerBid{
+      player_index: 1,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    result = Game.bid(game, bid)
+    assert result == {:error, :last_round_winner_must_bid_first}
+  end
+
+  test "previous winner bids successfully" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player1, 2)
+      |> Game.join_game(player2)
+
+    bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, %{winning_bid: winning_bid}} = Game.bid(game, bid)
+    assert winning_bid == bid
+  end
+
+  test "advances bid to next player" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player1, 2)
+      |> Game.join_game(player2)
+
+    first_bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    second_bid = %PlayerBid{
+      player_index: 1,
+      bid: %Bid{name: "7 spades", points: 60, suit: :spades, tricks: 7}
+    }
+
+    {:ok, %Game{turn: turn} = game2} = Game.bid(game, first_bid)
+    assert turn == 1
+
+    {:ok, %Game{turn: turn}} = Game.bid(game2, second_bid)
+    assert turn == 0
+  end
+
+  test "progresses to playing when players have passed" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player1, 2)
+      |> Game.join_game(player2)
+
+    first_bid = %PlayerBid{
+      player_index: 0,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, game} = Game.bid(game, first_bid)
+
+    {:ok, %Game{state: state, turn: turn}} = Game.pass(game, 1)
+    assert state == :playing
+    assert turn == 0
   end
 end
