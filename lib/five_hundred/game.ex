@@ -128,7 +128,7 @@ defmodule FiveHundred.Game do
     end
   end
 
-  @spec ensure_can_bid(t(), integer()) :: {:ok, t()} | {:error, Atom.t()}
+  @spec ensure_can_bid(t(), integer()) :: {:ok, t()} | {:error, atom()}
   def ensure_can_bid(%Game{bid_exclusion: bid_exclusion} = game, player_index) do
     if Enum.member?(bid_exclusion, player_index) do
       {:error, :cannot_bid}
@@ -137,11 +137,11 @@ defmodule FiveHundred.Game do
     end
   end
 
-  @spec set_winning_bid(t(), PlayerBid.t()) :: {:ok, t()} | {:error, Atom.t()}
+  @spec set_winning_bid(t(), PlayerBid.t()) :: {:ok, t()} | {:error, atom()}
   def set_winning_bid(%Game{} = game, %PlayerBid{} = playerBid),
     do: {:ok, %Game{game | winning_bid: playerBid}}
 
-  @spec exclude_from_bidding(t(), integer()) :: {:ok, t()} | {:error, Atom.t()}
+  @spec exclude_from_bidding(t(), integer()) :: {:ok, t()} | {:error, atom()}
   def exclude_from_bidding(%Game{bid_exclusion: bid_exclusion} = game, player_index),
     do: {:ok, %Game{game | bid_exclusion: [player_index | bid_exclusion]}}
 
