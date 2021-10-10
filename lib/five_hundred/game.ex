@@ -68,17 +68,25 @@ defmodule FiveHundred.Game do
          {:ok, game} <- ensure_can_bid(game, player_index),
          {:ok, game} <- ensure_bid_is_higher(game, playerBid),
          {:ok, game} <- set_winning_bid(game, playerBid),
+         {:ok, game} <- exclude_from_bidding(game, player_index),
          {:ok, game} <- bid_advance(game),
          {:ok, game} <- advance_turn(game),
          do: {:ok, game}
   end
 
   @spec ensure_last_winner_has_bid_first(t(), %PlayerBid{}) :: {:ok, t()} | {:error, :last_round_winner_bid_first}
-  def ensure_last_winner_has_bid_first(%Game{winning_bid: nil, last_round_winner: last_round_winner}, %PlayerBid{
+  def ensure_last_winner_has_bid_first(%Game{winning_bid: nil, last_round_winner: last_round_winner, bid_exclusion: bid_exclusion} = game, %PlayerBid{
         player_index: player_index
       })
-      when last_round_winner != player_index,
-      do: {:error, :last_round_winner_must_bid_first}
+  do
+    cond do
+      Enum.member?(bid_exclusion, last_round_winner) -> {:ok, game}
+      player_index != last_round_winner -> 
+        {:error, :last_round_winner_must_bid_first}
+      true -> {:ok, game}
+    end
+  end
+
   def ensure_last_winner_has_bid_first(%Game{} = game, %PlayerBid{}), do: {:ok, game}
 
   @spec pass(t(), integer()) :: {:ok, t()} | {:error, :not_your_turn | :not_bidding}
@@ -94,7 +102,7 @@ defmodule FiveHundred.Game do
 
   @spec bid_advance(t()) :: {:ok, t()} | {:error, :not_bidding}
   def bid_advance(%Game{bid_exclusion: bid_exclusion, players: players} = game)
-      when length(bid_exclusion) == length(players) - 1,
+      when length(bid_exclusion) == length(players),
       do: {:ok, %Game{game | state: :playing}}
 
   def bid_advance(%Game{} = game), do: {:ok, game}
