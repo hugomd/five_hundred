@@ -111,6 +111,24 @@ defmodule FiveHundred.Game do
   def advance_turn(%Game{players: players, turn: current_turn} = game),
     do: {:ok, %Game{game | turn: rem(current_turn + 1, length(players))}}
 
+  # If bidding is complete, deal hands
+  def maybe_deal_hand() do
+  end
+
+  # Ensure players only play cards from their hand
+  @spec ensure_valid_play(Player.t(), Card.t()) 
+  def ensure_valid_play(player, card) do
+  end
+
+  # Players can play cards
+  # Cards are added to the turn
+  # The winning card wins the trick
+  # Round is over when each player has played
+  # Counterparty (lost-bidding) wins points for tricks won (10 per trick)
+  # Bid winner does not gain points for tricks won, until the end of the game where they gain points based on the bid
+  def play_card(game, player, card) do
+  end
+
   @spec ensure_bidding(t()) :: {:ok, t()} | {:error, :not_bidding}
   def ensure_bidding(%Game{state: state}) when state != :bidding,
     do: {:error, :not_bidding}

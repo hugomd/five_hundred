@@ -150,9 +150,44 @@ defmodule FiveHundred.GameTest do
     }
 
     {:ok, game} = Game.bid(game, first_bid)
+    assert game.state == :bidding
 
     {:ok, %Game{state: state, turn: turn}} = Game.pass(game, 1)
     assert state == :playing
     assert turn == 0
+  end
+
+  test "round ends when all players have played" do
+    player1 = %Player{name: "Han Solo", hand: []}
+    player2 = %Player{name: "Obi-wan Kenobi", hand: []}
+
+    {:ok, game} =
+      Game.new_game(player1, 2)
+      |> Game.join_game(player2)
+
+    # First player passes
+    {:ok, game} = Game.pass(game, 0)
+
+    # Second player bids
+    second_bid = %PlayerBid{
+      player_index: 1,
+      bid: %Bid{name: "6 spades", points: 40, suit: :spades, tricks: 6}
+    }
+
+    {:ok, %Game{state: state, winning_bid: %PlayerBid{player_index: winning_index}}} = Game.bid(game, second_bid)
+
+    # Game starts
+    assert state == :playing
+    assert winning_index == 1
+
+    # Both play
+    # One wins
+    # Round ticks over
+    # Counterparty (lost-bidding) wins points for tricks won (10 per trick)
+    # Bid winner does not gain points for tricks won, until the end of the game where they gain points based on the bid
+    
+  end
+
+  test "first player can pass" do
   end
 end
