@@ -50,8 +50,6 @@ defmodule FiveHundredWeb.PlayLive do
 
   @impl true
   def handle_info({:game_state, %Game{} = state} = _event, socket) do
-    IO.inspect("HELLO!")
-    IO.inspect(state)
     updated_socket =
       socket
       |> clear_flash()

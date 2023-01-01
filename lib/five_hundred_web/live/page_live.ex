@@ -34,33 +34,15 @@ defmodule FiveHundredWeb.PageLive do
 
       {:noreply, socket}
     else
-      {:error, reason} when is_binary(reason) ->
+      {:error, reason} ->
         {:noreply, put_flash(socket, :error, reason)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
-    # with {:ok, starter} <- Game.new_game(params),
-    #      {:ok, game_code} <- GameStarter.get_game_code(starter),
-    #      {:ok, player} <- Player.create(%{name: starter.name}),
-    #      {:ok, _} <- GameServer.start_or_join(game_code, player) do
-    #   socket =
-    #     push_redirect(socket,
-    #       to: Routes.play_path(socket, :index, game: game_code, player: player.id)
-    #     )
-
-    #   {:noreply, socket}
-    # else
-    #   {:error, reason} when is_binary(reason) ->
-    #     {:noreply, put_flash(socket, :error, reason)}
-
-    #   {:error, %Ecto.Changeset{} = changeset} ->
-    #     {:noreply, assign(socket, :changeset, changeset)}
-    # end
   end
 
   defp new_game?(changeset) do
-    IO.inspect(changeset)
-    true
+    Ecto.Changeset.get_field(changeset, :game_code) != nil
   end
 end

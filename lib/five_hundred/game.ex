@@ -178,12 +178,13 @@ defmodule FiveHundred.Game do
       |> binary_part(0, length)
       |> String.upcase()
 
+  @spec get_player(t(), String.t()) :: {:ok, String.t()} | {:error, atom()}
   def get_player(game, name) do
     game.players
     |> Enum.find(&(&1.name == name))
     |> case do
-        nil -> {:error, nil}
-        val -> {:ok, val}
+        nil -> {:error, :unknown_player}
+        player -> {:ok, player}
       end
   end
 end

@@ -57,7 +57,7 @@ defmodule FiveHundredWeb.GameStarter do
   @doc """
   Get the game code to use for starting or joining the game.
   """
-  @spec get_game_code(t()) :: {:ok, GameState.game_code()} | {:error, String.t()}
+  @spec get_game_code(t()) :: {:ok, Game.game_code()} | {:error, String.t()}
   def get_game_code(%GameStarter{game_code: nil}), do: {:ok, Game.game_code()}
   def get_game_code(%GameStarter{game_code: code}), do: {:ok, code}
 
