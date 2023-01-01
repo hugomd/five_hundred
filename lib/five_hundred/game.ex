@@ -4,7 +4,6 @@ defmodule FiveHundred.Game do
 
   TODO:
   - score
-  - turn
   """
   alias FiveHundred.{Bid, Game, Player, PlayerBid}
 
@@ -13,18 +12,18 @@ defmodule FiveHundred.Game do
     :winning_bid,
     :players,
     :turn,
-    :code,
+    :sharable_id,
     :max_players,
     :last_round_winner,
     :bid_exclusion,
     state: :waiting_for_players
   ]
 
-  @type code :: String.t()
+  @type sharable_id :: String.t()
   @type state :: :bidding | :playing | :waiting_for_players | :finished
 
   @type t :: %Game{
-          code: nil | code(),
+          sharable_id: nil | sharable_id(),
           players: [Player.t()],
           turn: nil | integer(),
           state: state,
@@ -37,7 +36,7 @@ defmodule FiveHundred.Game do
   @spec new_game(Player.t()) :: t()
   def new_game(%Player{} = player, max_players \\ 4),
     do: %Game{
-      code: code(),
+      sharable_id: sharable_id(),
       players: [player],
       max_players: max_players,
       last_round_winner: 0,
@@ -74,16 +73,27 @@ defmodule FiveHundred.Game do
          do: {:ok, game}
   end
 
-  @spec ensure_last_winner_has_bid_first(t(), %PlayerBid{}) :: {:ok, t()} | {:error, :last_round_winner_bid_first}
-  def ensure_last_winner_has_bid_first(%Game{winning_bid: nil, last_round_winner: last_round_winner, bid_exclusion: bid_exclusion} = game, %PlayerBid{
-        player_index: player_index
-      })
-  do
+  @spec ensure_last_winner_has_bid_first(t(), %PlayerBid{}) ::
+          {:ok, t()} | {:error, :last_round_winner_bid_first}
+  def ensure_last_winner_has_bid_first(
+        %Game{
+          winning_bid: nil,
+          last_round_winner: last_round_winner,
+          bid_exclusion: bid_exclusion
+        } = game,
+        %PlayerBid{
+          player_index: player_index
+        }
+      ) do
     cond do
-      Enum.member?(bid_exclusion, last_round_winner) -> {:ok, game}
-      player_index != last_round_winner -> 
+      Enum.member?(bid_exclusion, last_round_winner) ->
+        {:ok, game}
+
+      player_index != last_round_winner ->
         {:error, :last_round_winner_must_bid_first}
-      true -> {:ok, game}
+
+      true ->
+        {:ok, game}
     end
   end
 
@@ -160,8 +170,8 @@ defmodule FiveHundred.Game do
 
   def ready_for_bidding?({:ok, %Game{} = game}), do: {:ok, game}
 
-  @spec code(integer) :: String.t()
-  def code(length \\ 5),
+  @spec sharable_id(integer) :: String.t()
+  def sharable_id(length \\ 5),
     do:
       :crypto.strong_rand_bytes(length)
       |> Base.url_encode64()

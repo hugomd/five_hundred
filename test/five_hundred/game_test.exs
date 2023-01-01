@@ -8,7 +8,7 @@ defmodule FiveHundred.GameTest do
     game = Game.new_game(player)
 
     assert game.players == [player]
-    assert game.code != nil
+    assert game.sharable_id != nil
     assert game.state == :waiting_for_players
   end
 
@@ -39,9 +39,9 @@ defmodule FiveHundred.GameTest do
 
     {:ok, game} =
       with game <- Game.new_game(player1, 3),
-      {:ok, game} <- Game.join_game(game, player2),
-      {:ok, game} <- Game.join_game(game, player3),
-      do: {:ok, game}
+           {:ok, game} <- Game.join_game(game, player2),
+           {:ok, game} <- Game.join_game(game, player3),
+           do: {:ok, game}
 
     bid = %PlayerBid{
       player_index: 0,

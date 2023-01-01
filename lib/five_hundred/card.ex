@@ -1,5 +1,5 @@
 defmodule FiveHundred.Card do
-  @doc """
+  @moduledoc """
   Models a card from a standard 53 card deck
   """
 

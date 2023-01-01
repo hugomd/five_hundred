@@ -1,4 +1,8 @@
 defmodule FiveHundred.Bid do
+  @moduledoc """
+  Models a bid for a conventional game.
+  Consists of a name, suit, tricks, and points.
+  """
   @derive Jason.Encoder
   defstruct [:name, :suit, :tricks, :points]
   alias FiveHundred.{Bid, Card}
@@ -19,9 +23,10 @@ defmodule FiveHundred.Bid do
 
   @spec bids() :: [t()]
   @doc """
-  bids/0 returns a list of bids according to the table below:
+  bids/0 returns a list of available bids.
+
   | Tricks       | Spades | Clubs | Diamonds | Hearts | No Trumps |
-  |:------------:|:------:|:-----:|:--------:|:------:|:---------:|
+  | ------------ | ------ | ----- | -------- | ------ | --------- |
   | 6 tricks     | 40     | 60    | 80       | 100    | 120       |
   | 7 tricks     | 140    | 160   | 180      | 200    | 220       |
   | 8 tricks     | 240    | 260   | 280      | 300    | 320       |
@@ -34,6 +39,9 @@ defmodule FiveHundred.Bid do
   def bids(), do: List.flatten(standard_bids(), special_bids())
 
   @spec standard_bids() :: [t()]
+  @doc """
+  Returns a list of standard bids for each suit (6 to 10 tricks).
+  """
   defp standard_bids() do
     suits =
       Card.suits()
@@ -51,6 +59,9 @@ defmodule FiveHundred.Bid do
     end
   end
 
+  @doc """
+  Returns a list of hardcoded list of special bids.
+  """
   @spec special_bids() :: [special_bid()]
   defp special_bids(),
     do: [
@@ -74,6 +85,9 @@ defmodule FiveHundred.Bid do
       }
     ]
 
+  @doc """
+  Compares two bids by points.
+  """
   @spec compare(t(), t()) :: :lt | :gt | :eq
   def compare(a, b) do
     cond do
