@@ -1,11 +1,12 @@
-use Mix.Config
+import Config
 
 # Configure your database
 config :five_hundred, FiveHundred.Repo,
   username: "postgres",
   password: "postgres",
-  database: "five_hundred_dev",
   hostname: "localhost",
+  database: "five_hundred_dev",
+  stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
@@ -14,20 +15,18 @@ config :five_hundred, FiveHundred.Repo,
 #
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
-# with webpack to recompile .js and .css sources.
+# with esbuild to bundle .js and .css sources.
 config :five_hundred, FiveHundredWeb.Endpoint,
-  http: [port: 4000],
-  debug_errors: true,
-  code_reloader: true,
+  # Binding to loopback ipv4 address prevents access from other machines.
+  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
+  http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
+  code_reloader: true,
+  debug_errors: true,
+  secret_key_base: "faDdZXSyw0nOWDojC9zU8uVZ801KcsmQMA/EEdyP3mD78YLYSxO7FSNCCaccir8X",
   watchers: [
-    node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      "development",
-      "--watch-stdin",
-      cd: Path.expand("../assets", __DIR__)
-    ]
+    # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
   ]
 
 # ## SSL Support

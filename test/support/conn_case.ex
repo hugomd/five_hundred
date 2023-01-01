@@ -32,12 +32,7 @@ defmodule FiveHundredWeb.ConnCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(FiveHundred.Repo)
-
-    unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(FiveHundred.Repo, {:shared, self()})
-    end
-
+    FiveHundred.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end
