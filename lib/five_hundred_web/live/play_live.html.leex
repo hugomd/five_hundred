@@ -1,0 +1,35 @@
+<%= if @server_found do %>
+  <%= if @player do %>
+    <div class="mb-4 text-lg leading-6 font-medium text-gray-900 text-center">
+      Player: <span class="font-semibold"><%= @player.name %></span>
+    </div>
+  <% end %>
+  <%= if @game.state == :waiting_for_players do %>
+    <div class="mt-8 text-4xl text-gray-700 text-center">
+      Waiting for other player to join!
+    </div>
+    <div class="mt-8 text-8xl text-indigo-700 text-center font-semibold">
+      <%= @game.game_code %>
+    </div>
+    <p class="mt-2 text-center font-medium text-gray-500">
+      Tell a friend to use this game code to join you!
+    </p>
+    <%= if @game.players do %>
+        <h1>Lobby</h1>
+        <ul>
+            <%= for player <- @game.players do %>
+                <li><%= player.name %></>
+            <% end %>
+        </ul>
+    <% end %>
+  <% else %>
+  <%= if @game.state == :bidding do %>
+    Time to bid!
+    <%= if @player do %>
+      <div class="mb-4 text-lg leading-6 font-medium text-gray-900 text-center">
+        Player: <span class="font-semibold"><%= @player.name %></span>
+      </div>
+    <% end %>
+  <% end %>
+  <% end %>
+<% end %>
