@@ -1,0 +1,78 @@
+# flyctl launch added from .elixir_ls/.gitignore
+.elixir_ls/**/*
+
+# flyctl launch added from .gitignore
+# The directory Mix will write compiled artifacts to.
+_build
+
+# If you run "mix test --cover", coverage assets end up here.
+cover
+
+# The directory Mix downloads your dependencies sources to.
+deps
+
+# Where 3rd-party dependencies like ExDoc output generated docs.
+doc
+
+# Ignore .fetch files in case you like to edit your project deps locally.
+.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+**/erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
+**/*.ez
+
+# Ignore package tarball (built via "mix hex.build").
+**/five_hundred-*.tar
+
+# If NPM crashes, it generates a log, let's ignore it too.
+**/npm-debug.log
+
+# The directory NPM downloads your dependencies sources to.
+assets/node_modules
+
+# Since we are building assets from assets/,
+# we ignore priv/static. You may want to comment
+# this depending on your deployment strategy.
+priv/static
+
+# flyctl launch added from five_hundred/.elixir_ls/.gitignore
+five_hundred/.elixir_ls/**/*
+
+# flyctl launch added from five_hundred/.gitignore
+# The directory Mix will write compiled artifacts to.
+five_hundred/_build
+
+# If you run "mix test --cover", coverage assets end up here.
+five_hundred/cover
+
+# The directory Mix downloads your dependencies sources to.
+five_hundred/deps
+
+# Where 3rd-party dependencies like ExDoc output generated docs.
+five_hundred/doc
+
+# Ignore .fetch files in case you like to edit your project deps locally.
+five_hundred/.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+five_hundred/**/erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
+five_hundred/**/*.ez
+
+# Ignore package tarball (built via "mix hex.build").
+five_hundred/**/five_hundred-*.tar
+
+# Ignore assets that are produced by build tools.
+five_hundred/priv/static/assets
+
+# Ignore digested assets cache.
+five_hundred/priv/static/cache_manifest.json
+
+# In case you use Node.js/npm, you want to ignore these.
+five_hundred/**/npm-debug.log
+five_hundred/assets/node_modules
+
+fly.toml
