@@ -5,18 +5,18 @@ defmodule FiveHundredWeb.PlayLive do
   alias FiveHundred.{Game, GameServer}
 
   @impl true
-  def mount(%{"game" => game_code, "player" => player_id} = _params, _session, socket) do
+  def mount(%{"game" => game_code} = _params, session, socket) do
+    # TODO: ensure session includes user_id, use a plug for this!
     if connected?(socket) do
       # Subscribe to game update notifications
       PubSub.subscribe(FiveHundred.PubSub, "game:#{game_code}")
       send(self(), :load_game_state)
     end
 
-
     {:ok,
      assign(socket,
        game_code: game_code,
-       player_id: player_id,
+       player_id: session["user_id"],
        player: nil,
        game: %Game{},
        server_found: GameServer.server_found?(game_code)
@@ -31,11 +31,12 @@ defmodule FiveHundredWeb.PlayLive do
   def handle_info(:load_game_state, %{assigns: %{server_found: true}} = socket) do
     with game <- GameServer.get_current_game_state(socket.assigns.game_code),
          {:ok, player} <- Game.get_player(game, socket.assigns.player_id) do
-        IO.inspect(player)
         {:noreply, assign(socket, server_found: true, game: game, player: player)}
     else
       error ->
         Logger.error("Failed to load game server state. #{inspect(error)}")
+        socket = socket
+        |> push_redirect(to: Routes.page_path(socket, :index))
         {:noreply, assign(socket, :server_found, false)}
     end
   end

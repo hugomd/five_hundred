@@ -1,10 +1,13 @@
 defmodule FiveHundredWeb.Router do
   use FiveHundredWeb, :router
 
+  alias FiveHundredWeb.Plug.AuthenticateUserSession
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
+    plug AuthenticateUserSession
     plug :put_root_layout, {FiveHundredWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
@@ -17,8 +20,14 @@ defmodule FiveHundredWeb.Router do
   scope "/", FiveHundredWeb do
     pipe_through :browser
 
-    live "/", PageLive, :index
-    live "/play", PlayLive, :index
+    live_session :default do
+      live "/", PageLive, :index
+    end
+
+    # TODO: ensure session auth
+    live_session :authenticated do
+      live "/play", PlayLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.

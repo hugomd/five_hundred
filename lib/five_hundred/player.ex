@@ -8,11 +8,13 @@ defmodule FiveHundred.Player do
   @derive Jason.Encoder
   # TODO: Should we store the player index here?
   defstruct [
+    :id,
     :name,
     hand: []
   ]
 
   @type t :: %Player{
+          id: nil | String.t(),
           name: nil | String.t(),
           hand: nil | [Card.t()]
         }

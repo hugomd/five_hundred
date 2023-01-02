@@ -86,7 +86,6 @@ defmodule FiveHundred.GameServer do
   def handle_call({:join_game, %Player{} = player}, _from, %Game{} = game) do
     case Game.join_game(game, player) do
       {:ok, game} ->
-        IO.inspect(game)
         broadcast_game_state(game)
         {:reply, :ok, game}
       {:error, reason} = error ->
