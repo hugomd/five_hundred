@@ -15,9 +15,19 @@ defmodule FiveHundred.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: FiveHundred.PubSub},
       # Start the Endpoint (http/https)
-      FiveHundredWeb.Endpoint
+      FiveHundredWeb.Endpoint,
       # Start a worker by calling: FiveHundred.Worker.start_link(arg)
       # {FiveHundred.Worker, arg}
+
+      # Start the registry for tracking running games
+      {Horde.Registry, [name: FiveHundred.GameRegistry, keys: :unique, members: :auto]},
+      {Horde.DynamicSupervisor,
+       [
+         name: FiveHundred.DistributedSupervisor,
+         shutdown: 1000,
+         strategy: :one_for_one,
+         members: :auto
+       ]},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

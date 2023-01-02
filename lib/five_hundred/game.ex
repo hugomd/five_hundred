@@ -12,18 +12,18 @@ defmodule FiveHundred.Game do
     :winning_bid,
     :players,
     :turn,
-    :sharable_id,
+    :game_code,
     :max_players,
     :last_round_winner,
     :bid_exclusion,
     state: :waiting_for_players
   ]
 
-  @type sharable_id :: String.t()
+  @type game_code :: String.t()
   @type state :: :bidding | :playing | :waiting_for_players | :finished
 
   @type t :: %Game{
-          sharable_id: nil | sharable_id(),
+          game_code: nil | game_code(),
           players: [Player.t()],
           turn: nil | integer(),
           state: state,
@@ -33,10 +33,10 @@ defmodule FiveHundred.Game do
           last_round_winner: nil | integer()
         }
 
-  @spec new_game(Player.t()) :: t()
-  def new_game(%Player{} = player, max_players \\ 4),
+  @spec new_game(Player.t(), game_code()) :: t()
+  def new_game(%Player{} = player, game_code, max_players \\ 4),
     do: %Game{
-      sharable_id: sharable_id(),
+      game_code: game_code,
       players: [player],
       max_players: max_players,
       last_round_winner: 0,
@@ -170,11 +170,21 @@ defmodule FiveHundred.Game do
 
   def ready_for_bidding?({:ok, %Game{} = game}), do: {:ok, game}
 
-  @spec sharable_id(integer) :: String.t()
-  def sharable_id(length \\ 5),
+  @spec game_code(integer) :: String.t()
+  def game_code(length \\ 5),
     do:
       :crypto.strong_rand_bytes(length)
       |> Base.url_encode64()
       |> binary_part(0, length)
       |> String.upcase()
+
+  @spec get_player(t(), String.t()) :: {:ok, String.t()} | {:error, atom()}
+  def get_player(game, name) do
+    game.players
+    |> Enum.find(&(&1.name == name))
+    |> case do
+        nil -> {:error, :unknown_player}
+        player -> {:ok, player}
+      end
+  end
 end

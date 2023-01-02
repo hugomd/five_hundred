@@ -17,7 +17,8 @@ defmodule FiveHundredWeb.Router do
   scope "/", FiveHundredWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", PageLive, :index
+    live "/play", PlayLive, :index
   end
 
   # Other scopes may use custom stacks.
