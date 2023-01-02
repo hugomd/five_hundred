@@ -7,9 +7,13 @@ defmodule FiveHundred.Application do
 
   @impl true
   def start(_type, _args) do
+    topologies = Application.get_env(:libcluster, :topologies) || []
+
     children = [
+      # Setup clustering
+      {Cluster.Supervisor, [topologies, [name: FiveHundred.ClusterSupervisor]]},
       # Start the Ecto repository
-      FiveHundred.Repo,
+      # FiveHundred.Repo,
       # Start the Telemetry supervisor
       FiveHundredWeb.Telemetry,
       # Start the PubSub system
