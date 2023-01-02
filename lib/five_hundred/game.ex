@@ -179,9 +179,9 @@ defmodule FiveHundred.Game do
       |> String.upcase()
 
   @spec get_player(t(), String.t()) :: {:ok, String.t()} | {:error, atom()}
-  def get_player(game, name) do
+  def get_player(game, id) do
     game.players
-    |> Enum.find(&(&1.name == name))
+    |> Enum.find(&(&1.id == id))
     |> case do
         nil -> {:error, :unknown_player}
         player -> {:ok, player}
