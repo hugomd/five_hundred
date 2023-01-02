@@ -35,7 +35,7 @@ assets/node_modules
 # Since we are building assets from assets/,
 # we ignore priv/static. You may want to comment
 # this depending on your deployment strategy.
-priv/static
+priv/static/assets
 
 # flyctl launch added from five_hundred/.elixir_ls/.gitignore
 five_hundred/.elixir_ls/**/*
@@ -66,7 +66,7 @@ five_hundred/**/*.ez
 five_hundred/**/five_hundred-*.tar
 
 # Ignore assets that are produced by build tools.
-five_hundred/priv/static/assets
+# five_hundred/priv/static/assets
 
 # Ignore digested assets cache.
 five_hundred/priv/static/cache_manifest.json

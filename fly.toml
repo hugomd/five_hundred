@@ -6,7 +6,7 @@ kill_timeout = 5
 processes = []
 
 [deploy]
-  release_command = "/app/bin/migrate"
+  # release_command = "/app/bin/migrate"
 
 [env]
   PHX_HOST = "five-hundred.fly.dev"
