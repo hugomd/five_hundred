@@ -42,6 +42,6 @@ defmodule FiveHundredWeb.PageLive do
   end
 
   defp new_game?(changeset) do
-    Ecto.Changeset.get_field(changeset, :game_code) != nil
+    Ecto.Changeset.get_field(changeset, :game_code) == nil
   end
 end
