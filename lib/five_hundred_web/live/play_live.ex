@@ -27,6 +27,9 @@ defmodule FiveHundredWeb.PlayLive do
     {:ok, push_redirect(socket, to: Routes.page_path(socket, :index))}
   end
 
+  # TODO: handle bidding
+  # TODO: handle playing
+
   @impl true
   def handle_info(:load_game_state, %{assigns: %{server_found: true}} = socket) do
     with game <- GameServer.get_current_game_state(socket.assigns.game_code),

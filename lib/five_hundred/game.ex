@@ -60,6 +60,7 @@ defmodule FiveHundred.Game do
           | {:error,
              :last_round_winner_must_bid_first | :not_bidding | :bid_not_high_enough | :cannot_bid}
 
+  # TODO: Use player ID instead of player index
   def bid(%Game{} = game, %PlayerBid{player_index: player_index} = playerBid) do
     with {:ok, game} <- ensure_bidding(game),
          {:ok, game} <- ensure_last_winner_has_bid_first(game, playerBid),
