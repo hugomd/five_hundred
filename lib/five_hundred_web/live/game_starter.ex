@@ -11,7 +11,7 @@ defmodule FiveHundredWeb.GameStarter do
 
   @type t :: %GameStarter{
           player_name: nil | String.t(),
-          game_code: nil | String.t(),
+          game_code: nil | String.t()
         }
 
   @doc false
@@ -60,7 +60,6 @@ defmodule FiveHundredWeb.GameStarter do
   @spec get_game_code(t()) :: {:ok, Game.game_code()} | {:error, String.t()}
   def get_game_code(%GameStarter{game_code: nil}), do: {:ok, Game.game_code()}
   def get_game_code(%GameStarter{game_code: code}), do: {:ok, code}
-
 
   @doc """
   Create the GameStart struct data from the changeset if valid.

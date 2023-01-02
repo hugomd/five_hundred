@@ -13,7 +13,8 @@ defmodule FiveHundred.GameServer do
     %{
       id: "#{GameServer}_#{name}",
       start: {GameServer, :start_link, [name, player]},
-      shutdown: 10_000, # TODO: should this be longer?
+      # TODO: should this be longer?
+      shutdown: 10_000,
       restart: :transient
     }
   end
@@ -22,7 +23,9 @@ defmodule FiveHundred.GameServer do
   Start a GameServer with the specified game_code as the name.
   """
   def start_link(name, %Player{} = player) do
-    case GenServer.start_link(GameServer, %{player: player, game_code: name}, name: via_tuple(name)) do
+    case GenServer.start_link(GameServer, %{player: player, game_code: name},
+           name: via_tuple(name)
+         ) do
       {:ok, pid} ->
         {:ok, pid}
 
@@ -78,7 +81,7 @@ defmodule FiveHundred.GameServer do
 
   # Server
   @impl true
-  def init(%{player: player, game_code: game_code}) do 
+  def init(%{player: player, game_code: game_code}) do
     {:ok, Game.new_game(player, game_code)}
   end
 
@@ -88,6 +91,7 @@ defmodule FiveHundred.GameServer do
       {:ok, game} ->
         broadcast_game_state(game)
         {:reply, :ok, game}
+
       {:error, reason} = error ->
         Logger.error("Failed to join and start game. Error: #{inspect(reason)}")
         {:reply, error, game}
@@ -120,5 +124,4 @@ defmodule FiveHundred.GameServer do
       [{pid, _} | _] when is_pid(pid) -> true
     end
   end
-
 end

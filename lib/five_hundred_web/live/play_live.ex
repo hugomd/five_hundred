@@ -34,12 +34,15 @@ defmodule FiveHundredWeb.PlayLive do
   def handle_info(:load_game_state, %{assigns: %{server_found: true}} = socket) do
     with game <- GameServer.get_current_game_state(socket.assigns.game_code),
          {:ok, player} <- Game.get_player(game, socket.assigns.player_id) do
-        {:noreply, assign(socket, server_found: true, game: game, player: player)}
+      {:noreply, assign(socket, server_found: true, game: game, player: player)}
     else
       error ->
         Logger.error("Failed to load game server state. #{inspect(error)}")
-        socket = socket
-        |> push_redirect(to: Routes.page_path(socket, :index))
+
+        socket =
+          socket
+          |> push_redirect(to: Routes.page_path(socket, :index))
+
         {:noreply, assign(socket, :server_found, false)}
     end
   end

@@ -31,7 +31,7 @@ defmodule FiveHundred.Application do
          shutdown: 1000,
          strategy: :one_for_one,
          members: :auto
-       ]},
+       ]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

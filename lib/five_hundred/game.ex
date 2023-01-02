@@ -184,8 +184,8 @@ defmodule FiveHundred.Game do
     game.players
     |> Enum.find(&(&1.id == id))
     |> case do
-        nil -> {:error, :unknown_player}
-        player -> {:ok, player}
-      end
+      nil -> {:error, :unknown_player}
+      player -> {:ok, player}
+    end
   end
 end
