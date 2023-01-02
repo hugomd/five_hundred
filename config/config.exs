@@ -8,7 +8,8 @@
 import Config
 
 config :five_hundred,
-  ecto_repos: [FiveHundred.Repo]
+  ecto_repos: [FiveHundred.Repo],
+  region: System.get_env("FLY_REGION", "local")
 
 # Configures the endpoint
 config :five_hundred, FiveHundredWeb.Endpoint,

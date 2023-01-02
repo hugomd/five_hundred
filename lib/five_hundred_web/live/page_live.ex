@@ -4,13 +4,20 @@ defmodule FiveHundredWeb.PageLive do
   alias FiveHundred.{Game, Player, GameServer}
   alias FiveHundredWeb.GameStarter
 
+  @region Application.get_env(:five_hundred, :region, "local")
+
   @impl true
   def mount(_params, session, socket) do
     # TODO: ensure user ID exists in session
-    {:ok, socket 
-    |> assign(changeset: GameStarter.insert_changeset(%{}), user_id: session["user_id"]) }
+    {:ok,
+     socket
+     |> assign(
+       changeset: GameStarter.insert_changeset(%{}),
+       user_id: session["user_id"],
+       region: @region
+     )}
   end
- 
+
   @impl true
   def handle_event("validate", %{"game_starter" => params}, socket) do
     changeset =
@@ -27,7 +34,7 @@ defmodule FiveHundredWeb.PageLive do
          player <- %Player{id: socket.assigns.user_id, name: starter.player_name},
          {:ok, game_code} <- GameStarter.get_game_code(starter),
          {:ok, _} <- GameServer.start_or_join(game_code, player) do
-      socket = 
+      socket =
         assign(socket, :player_name, starter.player_name)
         |> push_redirect(to: Routes.play_path(socket, :index, game: game_code))
 
