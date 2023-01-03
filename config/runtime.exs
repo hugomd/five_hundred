@@ -35,12 +35,19 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
+  region =
+    System.get_env("FLY_REGION") ||
+      raise "FLY_REGION not available"
+
   app_name =
     System.get_env("FLY_APP_NAME") ||
       raise "FLY_APP_NAME not available"
 
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
+
+  config :five_hundred,
+    region: region
 
   config :five_hundred, FiveHundredWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

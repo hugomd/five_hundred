@@ -19,7 +19,8 @@ defmodule FiveHundredWeb.PlayLive do
        player_id: session["user_id"],
        player: nil,
        game: %Game{},
-       server_found: GameServer.server_found?(game_code)
+       server_found: GameServer.server_found?(game_code),
+       region: Application.get_env(:five_hundred, :region, "local")
      )}
   end
 
@@ -63,5 +64,10 @@ defmodule FiveHundredWeb.PlayLive do
       |> assign(:game, state)
 
     {:noreply, updated_socket}
+  end
+
+  @impl true
+  def handle_event("ping", _, socket) do
+    {:reply, %{}, socket}
   end
 end

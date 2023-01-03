@@ -1,20 +1,19 @@
 defmodule FiveHundredWeb.PageLive do
   use FiveHundredWeb, :live_view
   import Phoenix.HTML.Form
-  alias FiveHundred.{Game, Player, GameServer}
+  alias FiveHundred.{Player, GameServer}
   alias FiveHundredWeb.GameStarter
-
-  @region Application.get_env(:five_hundred, :region, "local")
 
   @impl true
   def mount(_params, session, socket) do
     # TODO: ensure user ID exists in session
+
     {:ok,
      socket
      |> assign(
        changeset: GameStarter.insert_changeset(%{}),
        user_id: session["user_id"],
-       region: @region
+       region: Application.get_env(:five_hundred, :region, "local")
      )}
   end
 
@@ -46,6 +45,10 @@ defmodule FiveHundredWeb.PageLive do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
+  end
+
+  def handle_event("ping", _, socket) do
+    {:reply, %{}, socket}
   end
 
   defp new_game?(changeset) do
