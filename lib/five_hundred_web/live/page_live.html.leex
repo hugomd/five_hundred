@@ -56,6 +56,12 @@
       </div>
     </div>
   </form>
+  <h3>Live Games</h3>
+  <ul>
+    <%= for {state, game_code, players, node} <- list_game_servers() do %>
+      <li><%= game_code %> (<%= Enum.join(players, ", ") %>) on <%= node %> -  <%= Atom.to_string(state) %> </li>
+    <% end %>
+  </ul>
   <p>Connected to: <%= @region %>, latency: <span id="rtt" phx-hook="RTT" phx-update="ignore"></span></p>
 </div>
 

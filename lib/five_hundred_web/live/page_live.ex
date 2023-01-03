@@ -1,7 +1,7 @@
 defmodule FiveHundredWeb.PageLive do
   use FiveHundredWeb, :live_view
   import Phoenix.HTML.Form
-  alias FiveHundred.{Player, GameServer}
+  alias FiveHundred.{Game, Player, GameServer}
   alias FiveHundredWeb.GameStarter
 
   @impl true
@@ -54,5 +54,19 @@ defmodule FiveHundredWeb.PageLive do
 
   defp new_game?(changeset) do
     Ecto.Changeset.get_field(changeset, :game_code) == nil
+  end
+
+  defp list_game_servers() do
+    Horde.Registry.select(FiveHundred.GameRegistry, [{{:"$1", :_, :_}, [], [:"$1"]}])
+    |> IO.inspect()
+    |> Enum.map(&GameServer.get_current_game_state/1)
+    |> Enum.map(fn %Game{state: state, game_code: game_code, players: players} = game ->
+      {
+        state,
+        game_code,
+        players |> Enum.map(fn p -> p.name end),
+        node(Horde.Registry.whereis_name({FiveHundred.GameRegistry, game_code}))
+      }
+    end)
   end
 end
