@@ -5,7 +5,7 @@ defmodule FiveHundredWeb.PageLive do
   alias FiveHundredWeb.GameStarter
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(params, session, socket) do
     # TODO: ensure user ID exists in session
 
     {:ok,
@@ -13,7 +13,8 @@ defmodule FiveHundredWeb.PageLive do
      |> assign(
        changeset: GameStarter.insert_changeset(%{}),
        user_id: session["user_id"],
-       region: Application.get_env(:five_hundred, :region, "local")
+       region: Application.get_env(:five_hundred, :region, "local"),
+       game_code: Map.get(params, "game", "")
      )}
   end
 

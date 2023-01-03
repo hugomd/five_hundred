@@ -5,7 +5,7 @@ defmodule FiveHundredWeb.PlayLive do
   alias FiveHundred.{Game, GameServer}
 
   @impl true
-  def mount(%{"game" => game_code} = _params, session, socket) do
+  def mount(%{"game" => game_code} = _params, %{"user_id" => user_id} = _session, socket) do
     # TODO: ensure session includes user_id, use a plug for this!
     if connected?(socket) do
       # Subscribe to game update notifications
@@ -16,7 +16,7 @@ defmodule FiveHundredWeb.PlayLive do
     {:ok,
      assign(socket,
        game_code: game_code,
-       player_id: session["user_id"],
+       player_id: user_id,
        player: nil,
        game: %Game{},
        server_found: GameServer.server_found?(game_code),
@@ -42,7 +42,7 @@ defmodule FiveHundredWeb.PlayLive do
 
         socket =
           socket
-          |> push_redirect(to: Routes.page_path(socket, :index))
+          |> push_redirect(to: Routes.page_path(socket, :index, game: socket.assigns.game_code))
 
         {:noreply, assign(socket, :server_found, false)}
     end
