@@ -90,15 +90,12 @@
               <% end %>
 
               <div class="mt-4 flex space-x-4">
-                <%= if length(@game.kitty) == 0 do %>
-                  <button phx-click="complete_exchange" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Done - Start Playing
-                  </button>
-                <% else %>
-                  <button phx-click="skip_exchange" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                    Skip Exchange - Keep Current Hand
-                  </button>
-                <% end %>
+                <button phx-click="complete_exchange" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                  Done - Start Playing
+                </button>
+                <button phx-click="skip_exchange" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                  Skip Exchange - Keep Current Hand
+                </button>
               </div>
 
               <div class="mt-4 bg-blue-50 p-4 rounded">

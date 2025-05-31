@@ -168,6 +168,7 @@ defmodule FiveHundred.Game do
     remaining_players = length(game.players) - length(game.bid_exclusion)
     must_bid = remaining_players == 1 && is_nil(game.winning_bid)
 
+    # TODO(hugom): fix this nesting
     with {:ok, game} <- ensure_bidding(game),
          {:ok, _} <- ensure_turn(game, player_index) do
       Logger.debug("Pass - turn check passed for player #{player_index}")
@@ -205,6 +206,10 @@ defmodule FiveHundred.Game do
           # Set next turn or let the game proceed
           game =
             cond do
+              length(game.bid_exclusion) == 4 ->
+                {:ok, game} = deal_cards(game)
+                game
+
               # If we've moved out of bidding, don't change turn
               new_state != :bidding ->
                 Logger.debug("Pass - not changing turn since state is #{new_state}")
@@ -755,4 +760,3 @@ defmodule FiveHundred.Game do
     rank_symbol <> suit_symbol
   end
 end
-
