@@ -59,7 +59,7 @@
 
             <%= if Enum.at(@game.players, @game.turn).id == @player.id do %>
               <div class="mt-6">
-                <h3 class="text-lg font-semibold mb-2">Your Hand</h3>
+                <h3 class="text-lg font-semibold mb-2">Your Hand 1</h3>
                 <div class="flex flex-wrap gap-2">
                   <%= for card <- @player.hand do %>
                     <button phx-click="play_card" phx-value-suit={card.suit} phx-value-rank={card.rank}

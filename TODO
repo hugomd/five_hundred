@@ -1,4 +1,5 @@
-- Winning bid is incorrect, it seems to be off by one still.
-- One player doesn't get to bid, likely also off-by-one.
-- Kitty card selection does not render correctly, and does not do anything.
-- We need to disable ping, it's just spam basically.
+Current bugs:
+1. Hands are only displayed for the current player.
+2. Right/Left bower and joker not accounted for (?)
+3. When the last player passes, the winning bid is ignored, and the bidding goes back to player 1.
+4. Kitty card exchange is a bit broken.
