@@ -1,6 +1,5 @@
 defmodule FiveHundredWeb.PageLive do
   use FiveHundredWeb, :live_view
-  import Phoenix.HTML.Form
   alias FiveHundred.{Game, Player, GameServer}
   alias FiveHundredWeb.GameStarter
 
@@ -36,14 +35,14 @@ defmodule FiveHundredWeb.PageLive do
          {:ok, _} <- GameServer.start_or_join(game_code, player) do
       socket =
         assign(socket, :player_name, starter.player_name)
-        |> push_redirect(to: Routes.play_path(socket, :index, game: game_code))
+        |> push_navigate(to: ~p"/play?#{[game: game_code]}")
 
       {:noreply, socket}
     else
-      {:error, reason} ->
+      {:error, reason} when is_binary(reason) ->
         {:noreply, put_flash(socket, :error, reason)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
@@ -60,13 +59,9 @@ defmodule FiveHundredWeb.PageLive do
     Horde.Registry.select(FiveHundred.GameRegistry, [{{:"$1", :_, :_}, [], [:"$1"]}])
     |> IO.inspect()
     |> Enum.map(&GameServer.get_current_game_state/1)
-    |> Enum.map(fn %Game{state: state, game_code: game_code, players: players} = game ->
-      {
-        state,
-        game_code,
-        players |> Enum.map(fn p -> p.name end),
-        node(Horde.Registry.whereis_name({FiveHundred.GameRegistry, game_code}))
-      }
+    |> Enum.map(fn %Game{state: state, game_code: game_code, players: players} ->
+      {state, game_code, players |> Enum.map(fn p -> p.name end),
+       node(Horde.Registry.whereis_name({FiveHundred.GameRegistry, game_code}))}
     end)
   end
 end

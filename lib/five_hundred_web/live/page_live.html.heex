@@ -1,0 +1,70 @@
+<div class="mt-8 space-y-8 divide-y divide-gray-200">
+  <.form
+    :let={f}
+    for={@changeset}
+    id="player-form"
+    phx-change="validate"
+    phx-submit="save"
+    class="space-y-8 divide-y divide-gray-200">
+
+    <div>
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Player Settings
+        </h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Player information and configuration.
+        </p>
+      </div>
+
+      <div class="mt-6 grid grid-cols-2 gap-y-6 gap-x-4">
+        <div>
+          <.form_label for={f[:player_name]}>Player Name</.form_label>
+          <div class="mt-1">
+            <.input field={f[:player_name]} type="text" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+          </div>
+          <.error_tag form={f} field={:player_name} />
+        </div>
+
+        <div>
+          <.form_label for={f[:game_code]}>Game Code</.form_label>
+          <div class="mt-1">
+            <.input field={f[:game_code]} type="text" value={@game_code} class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" autocomplete="off" />
+          </div>
+          <p class="mt-2 text-sm text-gray-500" id="game_code-description">Leave it blank to start a new game</p>
+          <.error_tag form={f} field={:game_code} />
+        </div>
+      </div>
+
+      <div class="mt-6 text-right">
+        <%= if new_game?(@changeset) do %>
+          <div class="pt-5">
+            <div class="flex justify-end">
+              <.button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                New Game
+              </.button>
+            </div>
+          </div>
+        <% else %>
+          <div class="pt-5">
+            <div class="flex justify-end">
+              <.button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Join a Game
+              </.button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </.form>
+
+  <div class="pt-8">
+    <h3>Live Games</h3>
+    <ul>
+      <%= for {state, game_code, players, node} <- list_game_servers() do %>
+        <li><%= game_code %> (<%= Enum.join(players, ", ") %>) on <%= node %> -  <%= Atom.to_string(state) %> </li>
+      <% end %>
+    </ul>
+    <p>Connected to: <%= @region %>, latency: <span id="rtt" phx-hook="RTT" phx-update="ignore"></span></p>
+  </div>
+</div>

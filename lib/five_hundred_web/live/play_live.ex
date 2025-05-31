@@ -25,7 +25,7 @@ defmodule FiveHundredWeb.PlayLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, push_redirect(socket, to: Routes.page_path(socket, :index))}
+    {:ok, push_navigate(socket, to: ~p"/")}
   end
 
   # TODO: handle bidding
@@ -42,7 +42,7 @@ defmodule FiveHundredWeb.PlayLive do
 
         socket =
           socket
-          |> push_redirect(to: Routes.page_path(socket, :index, game: socket.assigns.game_code))
+          |> push_navigate(to: ~p"/?#{[game: socket.assigns.game_code]}")
 
         {:noreply, assign(socket, :server_found, false)}
     end

@@ -47,7 +47,7 @@ defmodule FiveHundred.Bid do
       Card.suits()
       |> Enum.reverse()
 
-    points_and_suits = List.zip([[40, 60, 80, 100, 120], suits])
+    points_and_suits = Enum.zip([[40, 60, 80, 100, 120], suits])
 
     for {points, suit} <- points_and_suits, tricks <- 6..10 do
       %Bid{

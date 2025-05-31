@@ -8,7 +8,7 @@ defmodule FiveHundredWeb.Router do
     plug :fetch_session
     plug :fetch_live_flash
     plug AuthenticateUserSession
-    plug :put_root_layout, {FiveHundredWeb.LayoutView, :root}
+    plug :put_root_layout, html: {FiveHundredWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
