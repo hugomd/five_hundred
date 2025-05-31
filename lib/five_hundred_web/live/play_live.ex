@@ -55,12 +55,22 @@ defmodule FiveHundredWeb.PlayLive do
 
   @impl true
   def handle_info({:game_state, %Game{} = state} = _event, socket) do
-    updated_socket =
-      socket
-      |> clear_flash()
-      |> assign(:game, state)
-      |> assign(:selected_kitty_card, nil)
-      |> assign(:selected_hand_card, nil)
+    # Update player data from new game state
+    updated_socket = case Game.get_player(state, socket.assigns.player_id) do
+      {:ok, player} ->
+        socket
+        |> clear_flash()
+        |> assign(:game, state)
+        |> assign(:player, player)  # Update player with new data
+        |> assign(:selected_kitty_card, nil)
+        |> assign(:selected_hand_card, nil)
+      {:error, _} ->
+        socket
+        |> clear_flash()
+        |> assign(:game, state)
+        |> assign(:selected_kitty_card, nil)
+        |> assign(:selected_hand_card, nil)
+    end
 
     {:noreply, updated_socket}
   end

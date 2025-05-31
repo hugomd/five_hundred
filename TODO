@@ -1,5 +1,5 @@
 Current bugs:
-1. Hands are only displayed for the current player.
+1. Hands are not shown after moving to playing phase.
 2. Right/Left bower and joker not accounted for (?)
 3. When the last player passes, the winning bid is ignored, and the bidding goes back to player 1.
 4. Kitty card exchange is a bit broken.
