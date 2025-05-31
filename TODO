@@ -1,0 +1,4 @@
+- Winning bid is incorrect, it seems to be off by one still.
+- One player doesn't get to bid, likely also off-by-one.
+- Kitty card selection does not render correctly, and does not do anything.
+- We need to disable ping, it's just spam basically.

@@ -13,15 +13,11 @@ defmodule FiveHundred.GameServer do
     %{
       id: "#{GameServer}_#{name}",
       start: {GameServer, :start_link, [name, player]},
-      # TODO: should this be longer?
       shutdown: 10_000,
       restart: :transient
     }
   end
 
-  @doc """
-  Start a GameServer with the specified game_code as the name.
-  """
   def start_link(name, %Player{} = player) do
     case GenServer.start_link(GameServer, %{player: player, game_code: name},
            name: via_tuple(name)
@@ -38,11 +34,6 @@ defmodule FiveHundred.GameServer do
     end
   end
 
-  @doc """
-  Start a new game or join an existing game.
-  """
-  @spec start_or_join(Game.game_code(), Player.t()) ::
-          {:ok, :started | :joined} | {:error, String.t()}
   def start_or_join(game_code, %Player{} = player) do
     case Horde.DynamicSupervisor.start_child(
            FiveHundred.DistributedSupervisor,
@@ -62,19 +53,10 @@ defmodule FiveHundred.GameServer do
     end
   end
 
-  @doc """
-  Join a running game server
-  """
-  @spec join_game(Game.game_code(), Player.t()) :: :ok | {:error, String.t()}
   def join_game(game_code, %Player{} = player) do
     GenServer.call(via_tuple(game_code), {:join_game, player})
   end
 
-  @doc """
-  Request and return the current game state.
-  """
-  @spec get_current_game_state(Game.game_code()) ::
-          Game.t() | {:error, String.t()}
   def get_current_game_state(game_code) do
     GenServer.call(via_tuple(game_code), :current_state)
   end
@@ -92,8 +74,67 @@ defmodule FiveHundred.GameServer do
         broadcast_game_state(game)
         {:reply, :ok, game}
 
-      {:error, reason} = error ->
-        Logger.error("Failed to join and start game. Error: #{inspect(reason)}")
+      {:error, _reason} = error ->
+        {:reply, error, game}
+    end
+  end
+
+  @impl true
+  def handle_call({:bid, player_bid}, _from, game) do
+    case Game.bid(game, player_bid) do
+      {:ok, game} ->
+        broadcast_game_state(game)
+        {:reply, {:ok, game}, game}
+      
+      {:error, _reason} = error ->
+        {:reply, error, game}
+    end
+  end
+
+  @impl true
+  def handle_call({:pass, player_index}, _from, game) do
+    case Game.pass(game, player_index) do
+      {:ok, game} ->
+        broadcast_game_state(game)
+        {:reply, {:ok, game}, game}
+      
+      {:error, _reason} = error ->
+        {:reply, error, game}
+    end
+  end
+
+  @impl true
+  def handle_call({:play_card, player_index, card}, _from, game) do
+    case Game.play_card(game, player_index, card) do
+      {:ok, game} ->
+        broadcast_game_state(game)
+        {:reply, {:ok, game}, game}
+      
+      {:error, _reason} = error ->
+        {:reply, error, game}
+    end
+  end
+
+  @impl true
+  def handle_call({:exchange_card, player_index, kitty_card, hand_card}, _from, game) do
+    case Game.exchange_card(game, player_index, kitty_card, hand_card) do
+      {:ok, game} ->
+        broadcast_game_state(game)
+        {:reply, {:ok, game}, game}
+      
+      {:error, _reason} = error ->
+        {:reply, error, game}
+    end
+  end
+
+  @impl true
+  def handle_call(:complete_exchange, _from, game) do
+    case Game.complete_exchange(game) do
+      {:ok, game} ->
+        broadcast_game_state(game)
+        {:reply, {:ok, game}, game}
+      
+      {:error, _reason} = error ->
         {:reply, error, game}
     end
   end
@@ -103,22 +144,13 @@ defmodule FiveHundred.GameServer do
     {:reply, state, state}
   end
 
-  @doc """
-  Return the `:via` tuple for referencing and interacting with a specific
-  GameServer.
-  """
   def via_tuple(game_code), do: {:via, Horde.Registry, {FiveHundred.GameRegistry, game_code}}
 
   def broadcast_game_state(%Game{} = state) do
     PubSub.broadcast(FiveHundred.PubSub, "game:#{state.game_code}", {:game_state, state})
   end
 
-  @doc """
-  Lookup the GameServer and report if it is found. Returns a boolean.
-  """
-  @spec server_found?(Game.game_code()) :: boolean()
   def server_found?(game_code) do
-    # Look up the game in the registry. Return if a match is found.
     case Horde.Registry.lookup(FiveHundred.GameRegistry, game_code) do
       [] -> false
       [{pid, _} | _] when is_pid(pid) -> true

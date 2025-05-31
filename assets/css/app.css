@@ -1,6 +1,32 @@
 /* This file is for your main application CSS */
 @import "./phoenix.css";
 
+/* Card styles */
+.card {
+  font-family: monospace;
+  font-size: 1.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background-color: white;
+  min-width: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #111827; /* text-gray-900 by default */
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card.text-red-600 {
+  color: #dc2626;
+}
+
+/* Rest of the existing styles */
+
 /* Alerts and form errors used by phx.new */
 .alert {
   padding: 15px;
