@@ -2,29 +2,32 @@ defmodule FiveHundredWeb.CoreComponents do
   use Phoenix.Component
 
   # Import required functions
+  import Phoenix.HTML
   import Phoenix.HTML.Form
+  import Phoenix.Component
   alias Phoenix.LiveView.JS
 
   @doc """
-  Renders an error message for form inputs.
-  """
-  attr :form, :any, required: true
-  attr :field, :atom, required: true
+  Renders a icon.
 
-  def error_tag(assigns) do
+  ## Examples
+
+      <.icon name="hero-x-mark-solid" />
+      <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
+  """
+  attr :name, :string, required: true
+  attr :class, :string, default: nil
+
+  def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <%= for error <- Keyword.get_values(@form.errors, @field) do %>
-      <span class="invalid-feedback" phx-feedback-for={input_name(@form, @field)}>
-        <%= translate_error(error) %>
-      </span>
-    <% end %>
+    <span class={[@name, @class]} />
     """
   end
 
   @doc """
   Renders a form label with consistent styling.
   """
-  attr :for, :any, required: true
+  attr :for, :string, required: true
   slot :inner_block, required: true
 
   def form_label(assigns) do
@@ -45,10 +48,33 @@ defmodule FiveHundredWeb.CoreComponents do
   attr :rest, :global, include: ~w(autocomplete disabled readonly)
 
   def input(assigns) do
-    assigns = assign_new(assigns, :value, fn -> input_value(assigns.field.form, assigns.field.field) end)
-    
+    field = assigns.field
+    errors = Enum.map(field.errors, &translate_error/1)
+
+    assigns = 
+      assigns
+      |> assign(:errors, errors)
+      |> assign(:feedback_name, input_name(field.form, field.field))
+
     ~H"""
-    <%= text_input @field, type: @type, class: @class, value: @value, name: input_name(@field.form, @field.field) %>
+    <div phx-feedback-for={@feedback_name}>
+      <input
+        type={@type}
+        value={@value || input_value(@field.form, @field.field)}
+        class={[
+          @class,
+          if(@field.errors != [], do: "border-rose-400 focus:border-rose-400 focus:ring-rose-400", else: "")
+        ] |> Enum.join(" ")}
+        id={@field.id}
+        name={@field.name}
+        aria-invalid={if(@field.errors != [], do: "true", else: "false")}
+        {@rest}
+      />
+      <div :for={msg <- @errors} class="mt-1 flex text-sm text-rose-600 phx-no-feedback:hidden">
+        <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-4 w-4 flex-none" />
+        <span class="ml-2"><%= msg %></span>
+      </div>
+    </div>
     """
   end
 

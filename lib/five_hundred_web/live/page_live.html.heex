@@ -19,20 +19,18 @@
 
       <div class="mt-6 grid grid-cols-2 gap-y-6 gap-x-4">
         <div>
-          <.form_label for={f[:player_name]}>Player Name</.form_label>
+          <.form_label for={f[:player_name].id}>Player Name</.form_label>
           <div class="mt-1">
             <.input field={f[:player_name]} type="text" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
           </div>
-          <.error_tag form={f} field={:player_name} />
         </div>
 
         <div>
-          <.form_label for={f[:game_code]}>Game Code</.form_label>
+          <.form_label for={f[:game_code].id}>Game Code</.form_label>
           <div class="mt-1">
             <.input field={f[:game_code]} type="text" value={@game_code} class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" autocomplete="off" />
           </div>
           <p class="mt-2 text-sm text-gray-500" id="game_code-description">Leave it blank to start a new game</p>
-          <.error_tag form={f} field={:game_code} />
         </div>
       </div>
 
