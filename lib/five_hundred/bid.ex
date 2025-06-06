@@ -36,7 +36,7 @@ defmodule FiveHundred.Bid do
   | Open Misere  | 500    |       |          |        |           |
   | Blind Misere | 1000   |       |          |        |           |
   """
-  def bids(), do: List.flatten(standard_bids(), special_bids())
+  def bids(), do: standard_bids() ++ special_bids()
 
   @spec standard_bids() :: [t()]
   @doc """
