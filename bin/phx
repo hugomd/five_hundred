@@ -1,0 +1,2 @@
+#!/bin/bash
+iex -S "$(hermit info elixir | awk '/^Root:/ { print $2 }')/bin/mix" phx.server
