@@ -4,7 +4,7 @@ defmodule FiveHundredWeb.GameLive do
 
   alias FiveHundred.{Game, GameServer, Player, PlayerBid, Card, Bid}
   alias Phoenix.PubSub
-  import FiveHundred.Game, only: [display_card: 1]
+  import FiveHundred.Game, only: [display_card: 1, last_completed_trick: 1, decision_to_string: 2]
 
   @impl true
   def mount(_params, _session, socket) do

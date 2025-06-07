@@ -3,6 +3,7 @@ defmodule FiveHundredWeb.PlayLive do
   require Logger
   alias Phoenix.PubSub
   alias FiveHundred.{Game, GameServer, PlayerBid, Card, Bid}
+  import FiveHundred.Game, only: [last_completed_trick: 1, decision_to_string: 2]
 
   @impl true
   def mount(%{"game" => game_code} = _params, %{"user_id" => user_id} = _session, socket) do
