@@ -35,22 +35,12 @@ defmodule FiveHundredWeb.GameStarter do
 
   @doc false
   def validate_game_code(changeset) do
-    # Don't check for a running game server if there are errors on the game_code
-    # field
-    if changeset.errors[:game_code] do
-      changeset
+    with nil <- changeset.errors[:game_code],
+         value when not is_nil(value) <- get_field(changeset, :game_code),
+         false <- GameServer.server_found?(value) do
+      add_error(changeset, :game_code, "not a running game")
     else
-      case get_field(changeset, :game_code) do
-        nil ->
-          changeset
-
-        value ->
-          if GameServer.server_found?(value) do
-            changeset
-          else
-            add_error(changeset, :game_code, "not a running game")
-          end
-      end
+      _ -> changeset
     end
   end
 
