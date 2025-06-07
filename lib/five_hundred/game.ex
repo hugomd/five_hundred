@@ -501,19 +501,25 @@ defmodule FiveHundred.Game do
         "Round complete - Player #{winning_bid.player_index + 1} (#{winner.name}) failed contract with #{tricks_taken} tricks"
       end
 
-    # Reset for next round
-    {:ok,
-     %Game{
-       updated_game
-       | state: :bidding,
-         tricks_won: 0,
-         current_trick: [],
-         winning_bid: nil,
-         bid_exclusion: [],
-         tricks_per_team: %{0 => 0, 1 => 0},
-         turn: updated_game.last_round_winner,
-         decisions: [decision | updated_game.decisions]
-     }}
+    game_after_round = %Game{updated_game | decisions: [decision | updated_game.decisions]}
+    finished_game = maybe_finish_game(game_after_round)
+
+    if finished_game.state == :finished do
+      {:ok, finished_game}
+    else
+      # Reset for next round
+      {:ok,
+       %Game{
+         finished_game
+         | state: :bidding,
+           tricks_won: 0,
+           current_trick: [],
+           winning_bid: nil,
+           bid_exclusion: [],
+           tricks_per_team: %{0 => 0, 1 => 0},
+           turn: finished_game.last_round_winner
+       }}
+    end
   end
 
   defp check_round_complete(%Game{} = game), do: {:ok, game}
@@ -541,6 +547,26 @@ defmodule FiveHundred.Game do
         # Winner/loser leads next round
         last_round_winner: winner_index
     }
+  end
+
+  @spec maybe_finish_game(t()) :: t()
+  defp maybe_finish_game(%Game{team_scores: %{0 => score0, 1 => score1}} = game) do
+    cond do
+      score0 >= 500 ->
+        %Game{game | state: :finished, decisions: ["Team 1 wins the game with #{score0} points" | game.decisions]}
+
+      score1 >= 500 ->
+        %Game{game | state: :finished, decisions: ["Team 2 wins the game with #{score1} points" | game.decisions]}
+
+      score0 <= -500 ->
+        %Game{game | state: :finished, decisions: ["Team 1 loses the game with #{score0} points" | game.decisions]}
+
+      score1 <= -500 ->
+        %Game{game | state: :finished, decisions: ["Team 2 loses the game with #{score1} points" | game.decisions]}
+
+      true ->
+        game
+    end
   end
 
   @spec determine_trick_winner(t()) :: integer()
