@@ -45,16 +45,36 @@
               <h3 class="text-lg font-semibold mb-2">Current Trick</h3>
               <div class="flex gap-4 p-4 bg-green-50 rounded min-h-[100px] items-center justify-center">
                 <%= for {card, i} <- Enum.with_index(@game.current_trick || []) do %>
+                  <% player_index = rem(@game.trick_leader + i, length(@game.players)) %>
                   <div class="text-center">
                     <div class={"card #{card_color(card)}"}>
                       <%= display_card(card) %>
                     </div>
                     <div class="text-sm mt-1">
-                      <%= Enum.at(@game.players, i).name %>
+                      <%= Enum.at(@game.players, player_index).name %>
                     </div>
                   </div>
                 <% end %>
               </div>
+
+              <% last = last_completed_trick(@game) %>
+              <%= if last do %>
+                <% {cards, leader} = last %>
+                <h3 class="text-lg font-semibold mb-2 mt-6">Previous Trick</h3>
+                <div class="flex gap-4 p-4 bg-yellow-50 rounded min-h-[100px] items-center justify-center">
+                  <%= for {card, i} <- Enum.with_index(cards) do %>
+                    <% p_index = rem(leader + i, length(@game.players)) %>
+                    <div class="text-center">
+                      <div class={"card #{card_color(card)}"}>
+                        <%= display_card(card) %>
+                      </div>
+                      <div class="text-sm mt-1">
+                        <%= Enum.at(@game.players, p_index).name %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
 
             <%= if Enum.at(@game.players, @game.turn).id == @player.id do %>
@@ -131,6 +151,17 @@
               <% end %>
             </div>
           </div>
+
+          <%= if @game.decisions != [] do %>
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold mb-2">Game Log</h3>
+              <ul class="text-sm space-y-1 list-disc list-inside">
+                <%= for decision <- Enum.take(Enum.reverse(@game.decisions), 10) do %>
+                  <li><%= decision_to_string(@game, decision) %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
         <% else %>
           <p class="text-gray-600">Loading game state...</p>
         <% end %>

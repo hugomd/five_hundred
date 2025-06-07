@@ -27,7 +27,7 @@ defmodule FiveHundred.Game do
 
   @type game_code :: String.t()
   @type state :: :bidding | :exchanging | :playing | :waiting_for_players | :finished
-  @type decision :: String.t()
+  @type decision :: String.t() | map()
 
   @type t :: %Game{
           game_code: nil | game_code(),
@@ -38,8 +38,8 @@ defmodule FiveHundred.Game do
           max_players: integer(),
           bid_exclusion: [integer()],
           last_round_winner: nil | integer(),
-          current_trick: [Card.t()],
-          tricks_won: non_neg_integer(),
+         current_trick: [Card.t()],
+         tricks_won: non_neg_integer(),
           trick_leader: nil | integer(),
           team_scores: %{non_neg_integer() => integer()},
           tricks_per_team: %{non_neg_integer() => non_neg_integer()},
@@ -463,6 +463,14 @@ defmodule FiveHundred.Game do
     ======================
     """)
 
+    trick_decision = %{
+      type: :trick_complete,
+      cards: trick,
+      leader: game.trick_leader,
+      winner: winner_index,
+      winner_card: last_card
+    }
+
     {:ok,
      %Game{
        game
@@ -472,7 +480,7 @@ defmodule FiveHundred.Game do
          turn: winner_index,
          trick_leader: winner_index,
          tricks_per_team: Map.update!(game.tricks_per_team, winning_team, &(&1 + 1)),
-         decisions: [decision | game.decisions]
+         decisions: [trick_decision | game.decisions]
      }}
   end
 
@@ -784,5 +792,21 @@ defmodule FiveHundred.Game do
       end
 
     rank_symbol <> suit_symbol
+  end
+
+  @spec last_completed_trick(t()) :: {list(Card.t()), integer()} | nil
+  def last_completed_trick(%Game{decisions: decisions}) do
+    Enum.find_value(decisions, fn
+      %{type: :trick_complete, cards: cards, leader: leader} -> {cards, leader}
+      _ -> nil
+    end)
+  end
+
+  @spec decision_to_string(t(), decision()) :: String.t()
+  def decision_to_string(_game, decision) when is_binary(decision), do: decision
+
+  def decision_to_string(game, %{type: :trick_complete, winner: winner, winner_card: card}) do
+    player = Enum.at(game.players, winner)
+    "Player #{winner + 1} (#{player.name}) won the trick with #{display_card(card)}"
   end
 end
