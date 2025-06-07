@@ -274,11 +274,11 @@ defmodule FiveHundred.Game do
     with {:ok, game} <- ensure_winner(game, player_index),
          {:ok, game} <- validate_exchange(game, kitty_card, hand_card),
          {:ok, game} <- perform_exchange(game, player_index, kitty_card, hand_card) do
-      # Record the exchange
+      # Record the exchange without revealing card details
       player = Enum.at(game.players, player_index)
 
       decision =
-        "Player #{player_index + 1} (#{player.name}) exchanged #{display_card(hand_card)} for #{display_card(kitty_card)}"
+        "Player #{player_index + 1} (#{player.name}) exchanged with the kitty"
 
       {:ok, %Game{game | decisions: [decision | game.decisions]}}
     end
@@ -422,9 +422,6 @@ defmodule FiveHundred.Game do
     last_card = List.last(trick)
 
     # Record who won the trick and with what card
-    decision =
-      "Player #{winner_index + 1} (#{winner.name}) won the trick with #{display_card(last_card)}"
-
     cards_played = Enum.map_join(trick, ", ", &display_card/1)
 
     Logger.debug("""
@@ -435,12 +432,17 @@ defmodule FiveHundred.Game do
     ======================
     """)
 
+    updated_tricks_per_team = Map.update!(game.tricks_per_team, winning_team, &(&1 + 1))
+    trick_points = updated_tricks_per_team[winning_team] * 10
+
     trick_decision = %{
       type: :trick_complete,
       cards: trick,
       leader: game.trick_leader,
       winner: winner_index,
-      winner_card: last_card
+      winner_card: last_card,
+      team: winning_team,
+      points: trick_points
     }
 
     {:ok,
@@ -451,7 +453,7 @@ defmodule FiveHundred.Game do
          # Winner leads next trick
          turn: winner_index,
          trick_leader: winner_index,
-         tricks_per_team: Map.update!(game.tricks_per_team, winning_team, &(&1 + 1)),
+         tricks_per_team: updated_tricks_per_team,
          decisions: [trick_decision | game.decisions]
      }}
   end
@@ -777,8 +779,8 @@ defmodule FiveHundred.Game do
   @spec decision_to_string(t(), decision()) :: String.t()
   def decision_to_string(_game, decision) when is_binary(decision), do: decision
 
-  def decision_to_string(game, %{type: :trick_complete, winner: winner, winner_card: card}) do
+  def decision_to_string(game, %{type: :trick_complete, winner: winner, winner_card: card, team: team, points: points}) do
     player = Enum.at(game.players, winner)
-    "Player #{winner + 1} (#{player.name}) won the trick with #{display_card(card)}"
+    "Player #{winner + 1} (#{player.name}) won the trick with #{display_card(card)}. Team #{team + 1} has #{points} points"
   end
 end
