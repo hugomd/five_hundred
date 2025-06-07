@@ -27,6 +27,8 @@ defmodule FiveHundredWeb.Router do
     # TODO: ensure session auth
     live_session :authenticated do
       live "/play", PlayLive, :index
+      live "/game", GameLive, :index
+      live "/game/:code", GameLive, :show
     end
   end
 

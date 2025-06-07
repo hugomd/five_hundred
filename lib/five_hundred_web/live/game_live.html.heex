@@ -1,0 +1,140 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-8">500 Card Game</h1>
+
+  <%= if @error_message do %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+      <span class="block sm:inline"><%= @error_message %></span>
+    </div>
+  <% end %>
+
+  <%= if !@game_code do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Create New Game</h2>
+        <button phx-click="create_game" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          Create Game
+        </button>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Join Existing Game</h2>
+        <.form for={%{}} as={:game} phx-submit="join_game">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="game_code">
+              Game Code
+            </label>
+            <input type="text" name="game[code]" id="game_code"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="Enter game code">
+          </div>
+          <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+            Join Game
+          </button>
+        </.form>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <div class="mb-4">
+        <h2 class="text-xl font-semibold">Game Code: <%= @game_code %></h2>
+        <%= if @game do %>
+          <p class="text-gray-600"><%= display_game_state(@game) %></p>
+          
+          <%= if @game.state == :playing && @player do %>
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold mb-2">Current Trick</h3>
+              <div class="flex gap-4 p-4 bg-green-50 rounded min-h-[100px] items-center justify-center">
+                <%= for {card, i} <- Enum.with_index(@game.current_trick || []) do %>
+                  <div class="text-center">
+                    <div class={"card #{card_color(card)}"}>
+                      <%= display_card(card) %>
+                    </div>
+                    <div class="text-sm mt-1">
+                      <%= Enum.at(@game.players, i).name %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <%= if Enum.at(@game.players, @game.turn).id == @player.id do %>
+              <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2">Your Hand 1</h3>
+                <div class="flex flex-wrap gap-2">
+                  <%= for card <- @player.hand do %>
+                    <button phx-click="play_card" phx-value-suit={card.suit} phx-value-rank={card.rank}
+                      class={"card #{card_color(card)} hover:bg-gray-100 transition-colors"}>
+                      <%= display_card(card) %>
+                    </button>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold mb-2">Game Info</h3>
+              <div class="bg-gray-50 p-4 rounded">
+                <p>Trump Suit: <%= Card.to_string(@game.winning_bid.bid.suit) %></p>
+                <p>Contract: <%= @game.winning_bid.bid.tricks %> tricks by <%= Enum.at(@game.players, @game.winning_bid.player_index).name %></p>
+                <p>Tricks Won: <%= Map.get(@game, :tricks_won, 0) %></p>
+              </div>
+            </div>
+          <% end %>
+          
+          <%= if @game.state == :bidding && @player && Enum.at(@game.players, @game.turn).id == @player.id do %>
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold mb-2">Make Your Bid</h3>
+              <.form for={%{}} as={:bid} phx-submit="make_bid">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Tricks</label>
+                    <select name="bid[tricks]" class="w-full border rounded py-2 px-3">
+                      <%= for tricks <- 6..10 do %>
+                        <option value={tricks}><%= tricks %></option>
+                      <% end %>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Suit</label>
+                    <select name="bid[suit]" class="w-full border rounded py-2 px-3">
+                      <option value="spades">♠ Spades</option>
+                      <option value="hearts">♥ Hearts</option>
+                      <option value="diamonds">♦ Diamonds</option>
+                      <option value="clubs">♣ Clubs</option>
+                      <option value="no_trumps">No Trumps</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="mt-4 flex space-x-4">
+                  <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Bid
+                  </button>
+                  <button type="button" phx-click="pass" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Pass
+                  </button>
+                </div>
+              </.form>
+            </div>
+          <% end %>
+
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold mb-2">Players</h3>
+            <div class="space-y-2">
+              <%= for player <- @game.players do %>
+                <div class="flex items-center space-x-2">
+                  <span class="w-4 h-4 rounded-full bg-green-500"></span>
+                  <span><%= player.name %></span>
+                  <%= if @game.state == :bidding && @game.turn == Enum.find_index(@game.players, &(&1.id == player.id)) do %>
+                    <span class="text-blue-500">(Current Turn)</span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% else %>
+          <p class="text-gray-600">Loading game state...</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
