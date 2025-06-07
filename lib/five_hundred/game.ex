@@ -168,88 +168,60 @@ defmodule FiveHundred.Game do
     remaining_players = length(game.players) - length(game.bid_exclusion)
     must_bid = remaining_players == 1 && is_nil(game.winning_bid)
 
-    # TODO(hugom): fix this nesting
     with {:ok, game} <- ensure_bidding(game),
-         {:ok, _} <- ensure_turn(game, player_index) do
-      Logger.debug("Pass - turn check passed for player #{player_index}")
+         {:ok, _} <- ensure_turn(game, player_index),
+         {:ok, _} <- ensure_can_bid(game, player_index),
+         {:ok, _} <- if(must_bid, do: {:error, :must_bid}, else: {:ok, game}),
+         {:ok, game} <- exclude_from_bidding(game, player_index),
+         {:ok, %Game{state: new_state} = game} <- bid_advance(game) do
+      Logger.debug(
+        "Pass - player #{player_index} added to exclusion list: #{inspect(game.bid_exclusion)}"
+      )
 
-      with {:ok, _} <- ensure_can_bid(game, player_index) do
-        Logger.debug("Pass - can bid check passed for player #{player_index}")
+      player = Enum.at(game.players, player_index)
+      decision = "Player #{player_index + 1} (#{player.name}) passed"
+      game = %Game{game | decisions: [decision | game.decisions]}
 
-        with {:ok, _} <- if(must_bid, do: {:error, :must_bid}, else: {:ok, game}) do
-          Logger.debug("Pass - must bid check passed for player #{player_index}")
-
-          # Add to excluded list first
-          {:ok, game} = exclude_from_bidding(game, player_index)
-
-          Logger.debug(
-            "Pass - player #{player_index} added to exclusion list: #{inspect(game.bid_exclusion)}"
-          )
-
-          # Record the pass decision
-          player = Enum.at(game.players, player_index)
-          decision = "Player #{player_index + 1} (#{player.name}) passed"
-          game = %Game{game | decisions: [decision | game.decisions]}
-
-          # Then advance bidding
-          {:ok, %Game{state: new_state} = game} = bid_advance(game)
-          Logger.debug("Pass - bid advanced, new state: #{new_state}, turn: #{game.turn}")
-
-          # Find remaining player if there is one
-          remaining_player =
-            if length(game.bid_exclusion) == length(game.players) - 1 do
-              Enum.find_index(0..(length(game.players) - 1), fn i ->
-                i not in game.bid_exclusion
-              end)
-            end
-
-          # Set next turn or let the game proceed
-          game =
-            cond do
-              length(game.bid_exclusion) == 4 ->
-                {:ok, game} = deal_cards(game)
-                game
-
-              # If we've moved out of bidding, don't change turn
-              new_state != :bidding ->
-                Logger.debug("Pass - not changing turn since state is #{new_state}")
-                game
-
-              # If there's one player left, set their turn
-              remaining_player != nil ->
-                Logger.debug("Pass - setting turn to remaining player #{remaining_player}")
-                %Game{game | turn: remaining_player}
-
-              # Otherwise advance to next player
-              true ->
-                {:ok, game} = advance_turn(game)
-                Logger.debug("Pass - advanced turn to next player #{game.turn}")
-                game
-            end
-
-          Logger.debug("""
-          ===== Pass Accepted =====
-          New turn: #{game.turn}
-          Excluded: #{inspect(game.bid_exclusion)}
-          Winner: #{inspect(game.winning_bid)}
-          State: #{game.state}
-          ====================
-          """)
-
-          {:ok, game}
-        else
-          error ->
-            Logger.debug("Pass rejected at must_bid check: #{inspect(error)}")
-            error
+      remaining_player =
+        if length(game.bid_exclusion) == length(game.players) - 1 do
+          Enum.find_index(0..(length(game.players) - 1), fn i ->
+            i not in game.bid_exclusion
+          end)
         end
-      else
-        error ->
-          Logger.debug("Pass rejected at can_bid check: #{inspect(error)}")
-          error
-      end
+
+      game =
+        cond do
+          length(game.bid_exclusion) == 4 ->
+            {:ok, game} = deal_cards(game)
+            game
+
+          new_state != :bidding ->
+            Logger.debug("Pass - not changing turn since state is #{new_state}")
+            game
+
+          remaining_player != nil ->
+            Logger.debug("Pass - setting turn to remaining player #{remaining_player}")
+            %Game{game | turn: remaining_player}
+
+          true ->
+            {:ok, game} = advance_turn(game)
+            Logger.debug("Pass - advanced turn to next player #{game.turn}")
+            game
+        end
+
+      Logger.debug("""
+      ===== Pass Accepted =====
+      New turn: #{game.turn}
+      Excluded: #{inspect(game.bid_exclusion)}
+      Winner: #{inspect(game.winning_bid)}
+      State: #{game.state}
+      ====================
+      """)
+
+      {:ok, game}
     else
       error ->
-        Logger.debug("Pass rejected at turn check: #{inspect(error)}")
+        Logger.debug("Pass rejected: #{inspect(error)}")
         error
     end
   end
